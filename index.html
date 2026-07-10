@@ -195,6 +195,38 @@
   .nota-card .texto{font-size:14px; line-height:1.5; white-space:pre-wrap;}
   .nota-form{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:22px;}
 
+  .cal-layout{display:grid; grid-template-columns:1fr 300px; gap:20px; align-items:start;}
+  .cal-panel{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px;}
+  .cal-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .cal-month{font-size:18px; font-weight:600; text-transform:capitalize;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px;}
+  .cal-weekday{font-size:11px; text-transform:uppercase; color:var(--slate); text-align:center; padding:4px 0; letter-spacing:.4px;}
+  .cal-day{
+    min-height:64px; border:1px solid var(--line); border-radius:4px; padding:6px 6px;
+    background:#fff; cursor:pointer; display:flex; flex-direction:column; gap:4px;
+  }
+  .cal-day.empty{background:transparent; border:none; cursor:default;}
+  .cal-day.today{border-color:var(--brass); border-width:2px;}
+  .cal-day.selected{background:var(--paper-dark);}
+  .cal-day .daynum{font-size:12.5px; font-weight:600; color:var(--ink);}
+  .cal-dots{display:flex; gap:3px; flex-wrap:wrap;}
+  .cal-dot{width:7px; height:7px; border-radius:50%; background:var(--forest);}
+  .cal-dot.tipo-prazo-do-caso{background:var(--danger);}
+  .cal-dot.tipo-reuniao{background:var(--sage);}
+  .cal-dot.tipo-pagamento{background:var(--amber);}
+  .cal-dot.tipo-outro{background:var(--slate);}
+  .cal-agenda{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px;}
+  .cal-agenda h4{font-size:13px; text-transform:uppercase; letter-spacing:.4px; color:var(--forest); margin:0 0 12px;}
+  .agenda-item{border-left:3px solid var(--forest); padding:8px 10px; margin-bottom:8px; background:var(--paper-dark); border-radius:0 4px 4px 0; cursor:pointer; font-size:13px;}
+  .agenda-item .adate{font-size:11px; color:var(--slate); margin-bottom:2px;}
+  .agenda-item .atitle{font-weight:600;}
+  .agenda-item.tipo-prazo-do-caso{border-left-color:var(--danger);}
+  .agenda-item.tipo-reuniao{border-left-color:var(--sage);}
+  .agenda-item.tipo-pagamento{border-left-color:var(--amber);}
+  .agenda-item.tipo-outro{border-left-color:var(--slate);}
+
+  .nota-photo{margin-top:10px; max-width:220px; border-radius:5px; border:1px solid var(--line); cursor:pointer; display:block;}
+
   select, input, textarea { color: var(--ink); }
   ::placeholder{color:#a8a290;}
 
@@ -210,6 +242,8 @@
     main{padding:18px 16px 50px;}
     .field-row{grid-template-columns:1fr;}
     .ficha{flex-wrap:wrap;}
+    .cal-layout{grid-template-columns:1fr;}
+    .cal-day{min-height:46px;}
   }
 </style>
 </head>
@@ -251,6 +285,7 @@
     <button data-view="imoveis">Imóveis</button>
     <button data-view="documentos">Documentos</button>
     <button data-view="notas">Notas</button>
+    <button data-view="calendario">Calendário</button>
   </nav>
 
   <main>
@@ -308,10 +343,33 @@
           <div class="field"><label>Relacionado a (opcional)</label><select id="nota-caso"><option value="">Nenhum caso específico</option></select></div>
         </div>
         <div class="field"><label>Anotação</label><textarea id="nota-texto" placeholder="O que aconteceu, o que foi decidido, próximos passos..."></textarea></div>
+        <div class="field"><label>Foto (opcional)</label><input type="file" id="nota-foto-input" accept="image/*"></div>
         <button class="btn small" id="add-nota-btn">Adicionar nota</button>
       </div>
       <div class="notas-list" id="notas-list"></div>
     </section>
+
+    <section class="view" id="view-calendario">
+      <div class="panel-head">
+        <div><h1 class="serif">Calendário</h1><p class="desc">Prazos dos casos e datas importantes da família.</p></div>
+        <button class="btn" id="add-evento-btn">+ Novo evento</button>
+      </div>
+      <div class="cal-layout">
+        <div class="cal-panel">
+          <div class="cal-nav">
+            <button type="button" class="btn ghost small" id="cal-prev">‹</button>
+            <div class="cal-month serif" id="cal-month-label"></div>
+            <button type="button" class="btn ghost small" id="cal-next">›</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+        </div>
+        <div class="cal-agenda">
+          <h4 id="agenda-title">Próximos eventos</h4>
+          <div id="agenda-list"></div>
+        </div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -444,6 +502,37 @@
   </div>
 </div>
 
+<!-- MODAL: evento -->
+<div class="overlay" id="evento-overlay">
+  <div class="modal">
+    <h2 class="serif" id="evento-modal-title">Novo evento</h2>
+    <form id="evento-form">
+      <input type="hidden" id="evento-id">
+      <div class="field"><label>Título</label><input type="text" id="evento-titulo" required placeholder="Ex: Audiência, vencimento IPTU..."></div>
+      <div class="field-row">
+        <div class="field"><label>Data</label><input type="date" id="evento-data" required></div>
+        <div class="field"><label>Tipo</label>
+          <select id="evento-tipo">
+            <option value="Reunião">Reunião</option>
+            <option value="Pagamento">Pagamento</option>
+            <option value="Judicial">Judicial</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Relacionado a (opcional)</label><select id="evento-caso"><option value="">Nenhum caso específico</option></select></div>
+      <div class="field"><label>Descrição</label><textarea id="evento-desc"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger small" id="delete-evento-btn" style="display:none;">Excluir</button>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn ghost small" id="cancel-evento-btn">Cancelar</button>
+          <button type="submit" class="btn small">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -466,6 +555,11 @@ let casos = [];
 let imoveis = [];
 let docs = [];
 let notas = [];
+let eventos = [];
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selectedDay = null;
+let pendingNotaFoto = null;
 let activeFilter = 'todos';
 let activeCat = '';
 let searchTerm = '';
@@ -533,7 +627,7 @@ async function afterLogin(){
   document.getElementById('user-badge').textContent = profile.nome || user.email;
 
   await loadAll();
-  renderPainel(); renderCasos(); renderImoveis(); renderDocs(); renderNotas();
+  renderPainel(); renderCasos(); renderImoveis(); renderDocs(); renderNotas(); renderCalendar();
 }
 
 // check existing session on load
@@ -547,16 +641,18 @@ async function afterLogin(){
 
 /* ================= LOAD DATA ================= */
 async function loadAll(){
-  const [c, i, d, n] = await Promise.all([
+  const [c, i, d, n, ev] = await Promise.all([
     sb.from('casos').select('*').order('id'),
     sb.from('imoveis').select('*').order('id'),
     sb.from('documentos').select('*').order('id'),
     sb.from('notas').select('*').order('data', {ascending:false}).order('created_at', {ascending:false}),
+    sb.from('eventos').select('*').order('data'),
   ]);
   casos = c.data || [];
   imoveis = i.data || [];
   docs = d.data || [];
   notas = n.data || [];
+  eventos = ev.data || [];
 }
 
 /* ================= PAINEL ================= */
@@ -901,22 +997,205 @@ function renderNotas(){
             ${caso ? `<span>· caso #${caso.id} — ${caso.tema}</span>` : ''}
           </div>
           <div class="texto">${n.texto}</div>
+          ${n.foto_path ? `<img class="nota-photo" data-path="${n.foto_path}" alt="Foto anexada">` : ''}
         </div>`;
       }).join('');
+  list.querySelectorAll('.nota-photo').forEach(async (img)=>{
+    const { data } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(img.dataset.path, 300);
+    if(data){
+      img.src = data.signedUrl;
+      img.addEventListener('click', ()=> window.open(data.signedUrl, '_blank'));
+    }
+  });
 }
+document.getElementById('nota-foto-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 15*1024*1024){ toast('Foto muito grande (máx. 15 MB).'); e.target.value=''; return; }
+  pendingNotaFoto = file;
+});
 document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   const texto = document.getElementById('nota-texto').value.trim();
   const data = document.getElementById('nota-data').value;
   const casoId = document.getElementById('nota-caso').value || null;
   if(!texto){ toast('Escreva algo antes de salvar.'); return; }
-  await sb.from('notas').insert({
+  const payload = {
     autor: currentProfile.id, autor_nome: currentProfile.nome, data, texto, caso_id: casoId ? parseInt(casoId) : null
-  });
+  };
+  if(pendingNotaFoto){
+    const path = `notas/${Date.now()}_${pendingNotaFoto.name}`.replace(/\s+/g,'_');
+    const { error: upErr } = await sb.storage.from(DOCS_BUCKET).upload(path, pendingNotaFoto, { upsert:false });
+    if(upErr){ toast('Erro ao enviar a foto.'); return; }
+    payload.foto_path = path;
+  }
+  await sb.from('notas').insert(payload);
   document.getElementById('nota-texto').value = '';
+  document.getElementById('nota-foto-input').value = '';
+  pendingNotaFoto = null;
   const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
   notas = n || [];
   renderNotas();
   toast('Nota adicionada.');
+});
+
+/* ================= CALENDÁRIO ================= */
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function tipoSlug(t){ return slug(t==='Prazo do caso' ? 'prazo-do-caso' : t); }
+
+function buildCalendarItems(){
+  const items = [];
+  casos.forEach(c=>{
+    if(c.prazo){
+      items.push({ data: c.prazo, titulo: c.tema, tipo: 'Prazo do caso', casoId: c.id, isEvento:false });
+    }
+  });
+  eventos.forEach(ev=>{
+    items.push({ data: ev.data, titulo: ev.titulo, tipo: ev.tipo, descricao: ev.descricao, casoId: ev.caso_id, isEvento:true, id: ev.id });
+  });
+  return items;
+}
+
+function renderCalendar(){
+  const items = buildCalendarItems();
+  document.getElementById('cal-month-label').textContent = `${MESES[calMonth]} ${calYear}`;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = DIAS_SEMANA.map(d=>`<div class="cal-weekday">${d}</div>`).join('');
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  for(let i=0;i<firstDay;i++){ grid.innerHTML += `<div class="cal-day empty"></div>`; }
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayItems = items.filter(it=>it.data===dateStr);
+    const isToday = dateStr===todayStr;
+    const isSelected = dateStr===selectedDay;
+    const dots = dayItems.slice(0,4).map(it=>`<div class="cal-dot ${tipoSlug(it.tipo)}"></div>`).join('');
+    grid.innerHTML += `<div class="cal-day ${isToday?'today':''} ${isSelected?'selected':''}" data-date="${dateStr}">
+      <div class="daynum">${day}</div>
+      <div class="cal-dots">${dots}</div>
+    </div>`;
+  }
+  grid.querySelectorAll('.cal-day:not(.empty)').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      selectedDay = el.dataset.date;
+      renderCalendar();
+      renderAgendaForDay(selectedDay, items);
+    });
+  });
+
+  if(selectedDay){
+    renderAgendaForDay(selectedDay, items);
+  } else {
+    renderUpcomingAgenda(items);
+  }
+}
+
+function agendaItemHTML(it){
+  return `<div class="agenda-item ${tipoSlug(it.tipo)}" data-evento-id="${it.isEvento?it.id:''}" data-caso-id="${it.casoId||''}">
+    <div class="adate">${fmtDate(it.data)} · ${it.tipo}</div>
+    <div class="atitle">${it.titulo}</div>
+    ${it.descricao ? `<div style="color:var(--slate); margin-top:3px;">${it.descricao}</div>` : ''}
+  </div>`;
+}
+function attachAgendaHandlers(container){
+  container.querySelectorAll('.agenda-item').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const evId = el.dataset.eventoId;
+      const casoId = el.dataset.casoId;
+      if(evId){ openEventoModal(parseInt(evId)); }
+      else if(casoId){ showView('casos'); openCasoModal(parseInt(casoId)); }
+    });
+  });
+}
+function renderAgendaForDay(dateStr, items){
+  document.getElementById('agenda-title').textContent = fmtDate(dateStr);
+  const dayItems = items.filter(it=>it.data===dateStr);
+  const list = document.getElementById('agenda-list');
+  list.innerHTML = dayItems.length===0
+    ? `<div style="font-size:13px;color:var(--slate);">Nenhum evento nesta data.</div>`
+    : dayItems.map(agendaItemHTML).join('');
+  attachAgendaHandlers(list);
+}
+function renderUpcomingAgenda(items){
+  document.getElementById('agenda-title').textContent = 'Próximos eventos';
+  const todayStr = new Date().toISOString().slice(0,10);
+  const upcoming = items.filter(it=>it.data>=todayStr).sort((a,b)=> a.data.localeCompare(b.data)).slice(0,12);
+  const list = document.getElementById('agenda-list');
+  list.innerHTML = upcoming.length===0
+    ? `<div style="font-size:13px;color:var(--slate);">Nenhum evento futuro registrado.</div>`
+    : upcoming.map(agendaItemHTML).join('');
+  attachAgendaHandlers(list);
+}
+
+document.getElementById('cal-prev').addEventListener('click', ()=>{
+  calMonth--; if(calMonth<0){ calMonth=11; calYear--; }
+  selectedDay = null;
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', ()=>{
+  calMonth++; if(calMonth>11){ calMonth=0; calYear++; }
+  selectedDay = null;
+  renderCalendar();
+});
+
+function populateEventoCasoSelect(){
+  const sel = document.getElementById('evento-caso');
+  sel.innerHTML = '<option value="">Nenhum caso específico</option>' + casos.map(c=>`<option value="${c.id}">#${c.id} — ${c.tema}</option>`).join('');
+}
+function openEventoModal(id){
+  populateEventoCasoSelect();
+  const overlay = document.getElementById('evento-overlay');
+  const isNew = !id;
+  document.getElementById('evento-modal-title').textContent = isNew ? 'Novo evento' : 'Editar evento';
+  document.getElementById('delete-evento-btn').style.display = isNew ? 'none' : 'inline-flex';
+  const ev = isNew ? {id:'',titulo:'',data: selectedDay || new Date().toISOString().slice(0,10),tipo:'Reunião',descricao:'',caso_id:''} : eventos.find(x=>x.id===id);
+  document.getElementById('evento-id').value = ev.id;
+  document.getElementById('evento-titulo').value = ev.titulo || '';
+  document.getElementById('evento-data').value = ev.data || '';
+  document.getElementById('evento-tipo').value = ev.tipo || 'Reunião';
+  document.getElementById('evento-caso').value = ev.caso_id || '';
+  document.getElementById('evento-desc').value = ev.descricao || '';
+  overlay.classList.add('active');
+}
+document.getElementById('add-evento-btn').addEventListener('click', ()=> openEventoModal(null));
+document.getElementById('cancel-evento-btn').addEventListener('click', ()=> document.getElementById('evento-overlay').classList.remove('active'));
+document.getElementById('evento-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const idVal = document.getElementById('evento-id').value;
+  const casoVal = document.getElementById('evento-caso').value;
+  const data = {
+    titulo: document.getElementById('evento-titulo').value.trim(),
+    data: document.getElementById('evento-data').value,
+    tipo: document.getElementById('evento-tipo').value,
+    descricao: document.getElementById('evento-desc').value.trim(),
+    caso_id: casoVal ? parseInt(casoVal) : null,
+  };
+  if(idVal){
+    await sb.from('eventos').update(data).eq('id', idVal);
+  } else {
+    data.created_by = currentProfile.id;
+    await sb.from('eventos').insert(data);
+  }
+  const { data: ev } = await sb.from('eventos').select('*').order('data');
+  eventos = ev || [];
+  document.getElementById('evento-overlay').classList.remove('active');
+  renderCalendar();
+  toast('Evento salvo.');
+});
+document.getElementById('delete-evento-btn').addEventListener('click', async ()=>{
+  const idVal = parseInt(document.getElementById('evento-id').value);
+  if(!confirm('Excluir este evento?')) return;
+  await sb.from('eventos').delete().eq('id', idVal);
+  const { data: ev } = await sb.from('eventos').select('*').order('data');
+  eventos = ev || [];
+  document.getElementById('evento-overlay').classList.remove('active');
+  renderCalendar();
+  toast('Evento excluído.');
 });
 
 /* ================= PERFIL ================= */
@@ -936,11 +1215,12 @@ document.getElementById('perfil-form').addEventListener('submit', async (e)=>{
 });
 
 /* ================= NAV ================= */
+function showView(name){
+  document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('active', b.dataset.view===name));
+  document.querySelectorAll('.view').forEach(v=> v.classList.toggle('active', v.id === 'view-'+name));
+}
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('active', b===btn));
-    document.querySelectorAll('.view').forEach(v=> v.classList.toggle('active', v.id === 'view-'+btn.dataset.view));
-  });
+  btn.addEventListener('click', ()=> showView(btn.dataset.view));
 });
 </script>
 </body>
