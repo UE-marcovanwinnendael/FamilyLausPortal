@@ -457,7 +457,7 @@ if(typeof window.supabase === 'undefined'){
   document.getElementById('login-error').style.display = 'block';
   throw new Error('Supabase library not loaded');
 }
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= STATE ================= */
 let session = null;
@@ -499,7 +499,7 @@ document.getElementById('login-form').addEventListener('submit', async (e)=>{
   btn.disabled = true; btn.textContent = 'Entrando...';
   const email = document.getElementById('email-input').value.trim();
   const password = document.getElementById('password-input').value;
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   btn.disabled = false; btn.textContent = 'Entrar';
   if(error){
     errEl.textContent = 'E-mail ou senha incorretos.';
@@ -511,7 +511,7 @@ document.getElementById('login-form').addEventListener('submit', async (e)=>{
 });
 
 document.getElementById('logout-btn').addEventListener('click', async ()=>{
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   session = null; currentProfile = null;
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
@@ -522,11 +522,11 @@ async function afterLogin(){
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
 
-  const { data: { user } } = await supabase.auth.getUser();
-  let { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  const { data: { user } } = await sb.auth.getUser();
+  let { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
   if(!profile){
-    await supabase.from('profiles').insert({ id: user.id, nome: user.email.split('@')[0] });
-    const r = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    await sb.from('profiles').insert({ id: user.id, nome: user.email.split('@')[0] });
+    const r = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
     profile = r.data;
   }
   currentProfile = profile;
@@ -538,7 +538,7 @@ async function afterLogin(){
 
 // check existing session on load
 (async ()=>{
-  const { data } = await supabase.auth.getSession();
+  const { data } = await sb.auth.getSession();
   if(data.session){
     session = data.session;
     await afterLogin();
@@ -548,10 +548,10 @@ async function afterLogin(){
 /* ================= LOAD DATA ================= */
 async function loadAll(){
   const [c, i, d, n] = await Promise.all([
-    supabase.from('casos').select('*').order('id'),
-    supabase.from('imoveis').select('*').order('id'),
-    supabase.from('documentos').select('*').order('id'),
-    supabase.from('notas').select('*').order('data', {ascending:false}).order('created_at', {ascending:false}),
+    sb.from('casos').select('*').order('id'),
+    sb.from('imoveis').select('*').order('id'),
+    sb.from('documentos').select('*').order('id'),
+    sb.from('notas').select('*').order('data', {ascending:false}).order('created_at', {ascending:false}),
   ]);
   casos = c.data || [];
   imoveis = i.data || [];
@@ -684,9 +684,9 @@ document.getElementById('caso-form').addEventListener('submit', async (e)=>{
     updated_at: new Date().toISOString(),
   };
   if(idVal){
-    await supabase.from('casos').update(data).eq('id', idVal);
+    await sb.from('casos').update(data).eq('id', idVal);
   } else {
-    await supabase.from('casos').insert(data);
+    await sb.from('casos').insert(data);
   }
   await loadAll();
   document.getElementById('caso-overlay').classList.remove('active');
@@ -696,7 +696,7 @@ document.getElementById('caso-form').addEventListener('submit', async (e)=>{
 document.getElementById('delete-caso-btn').addEventListener('click', async ()=>{
   const idVal = parseInt(document.getElementById('caso-id').value);
   if(!confirm('Excluir este caso? Esta ação não pode ser desfeita.')) return;
-  await supabase.from('casos').delete().eq('id', idVal);
+  await sb.from('casos').delete().eq('id', idVal);
   await loadAll();
   document.getElementById('caso-overlay').classList.remove('active');
   renderPainel(); renderCasos(); populateNotaCasoSelect();
@@ -704,7 +704,7 @@ document.getElementById('delete-caso-btn').addEventListener('click', async ()=>{
 });
 
 async function loadComments(casoId){
-  const { data } = await supabase.from('comentarios').select('*').eq('caso_id', casoId).order('created_at');
+  const { data } = await sb.from('comentarios').select('*').eq('caso_id', casoId).order('created_at');
   const list = document.getElementById('comments-list');
   list.innerHTML = (data||[]).length===0
     ? `<div style="font-size:13px;color:var(--slate);">Nenhum comentário ainda.</div>`
@@ -713,7 +713,7 @@ async function loadComments(casoId){
 document.getElementById('add-comment-btn').addEventListener('click', async ()=>{
   const texto = document.getElementById('new-comment').value.trim();
   if(!texto || !editingCasoId) return;
-  await supabase.from('comentarios').insert({
+  await sb.from('comentarios').insert({
     caso_id: editingCasoId, autor: currentProfile.id, autor_nome: currentProfile.nome, texto
   });
   document.getElementById('new-comment').value = '';
@@ -764,8 +764,8 @@ document.getElementById('imovel-form').addEventListener('submit', async (e)=>{
     obs: document.getElementById('imovel-obs').value.trim(),
     updated_at: new Date().toISOString(),
   };
-  if(idVal){ await supabase.from('imoveis').update(data).eq('id', idVal); }
-  else{ await supabase.from('imoveis').insert(data); }
+  if(idVal){ await sb.from('imoveis').update(data).eq('id', idVal); }
+  else{ await sb.from('imoveis').insert(data); }
   await loadAll();
   document.getElementById('imovel-overlay').classList.remove('active');
   renderImoveis();
@@ -774,7 +774,7 @@ document.getElementById('imovel-form').addEventListener('submit', async (e)=>{
 document.getElementById('delete-imovel-btn').addEventListener('click', async ()=>{
   const idVal = parseInt(document.getElementById('imovel-id').value);
   if(!confirm('Excluir este imóvel?')) return;
-  await supabase.from('imoveis').delete().eq('id', idVal);
+  await sb.from('imoveis').delete().eq('id', idVal);
   await loadAll();
   document.getElementById('imovel-overlay').classList.remove('active');
   renderImoveis();
@@ -804,7 +804,7 @@ function renderDocs(){
 async function downloadDoc(id){
   const meta = docs.find(d=>d.id===id);
   if(!meta || !meta.storage_path) return;
-  const { data, error } = await supabase.storage.from(DOCS_BUCKET).createSignedUrl(meta.storage_path, 120);
+  const { data, error } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(meta.storage_path, 120);
   if(error || !data){ toast('Não foi possível gerar o link de download.'); return; }
   window.open(data.signedUrl, '_blank');
 }
@@ -849,15 +849,15 @@ document.getElementById('doc-form').addEventListener('submit', async (e)=>{
     let targetId = idVal ? parseInt(idVal) : null;
     if(pendingFile){
       const path = `${Date.now()}_${pendingFile.name}`.replace(/\s+/g,'_');
-      const { error: upErr } = await supabase.storage.from(DOCS_BUCKET).upload(path, pendingFile, { upsert:false });
+      const { error: upErr } = await sb.storage.from(DOCS_BUCKET).upload(path, pendingFile, { upsert:false });
       if(upErr){ toast('Erro ao enviar o arquivo.'); saveBtn.disabled=false; saveBtn.textContent='Salvar'; return; }
       data.storage_path = path;
       data.file_name = pendingFile.name;
       data.file_mime = pendingFile.type;
       data.uploaded_by = currentProfile.id;
     }
-    if(targetId){ await supabase.from('documentos').update(data).eq('id', targetId); }
-    else{ await supabase.from('documentos').insert(data); }
+    if(targetId){ await sb.from('documentos').update(data).eq('id', targetId); }
+    else{ await sb.from('documentos').insert(data); }
     await loadAll();
     document.getElementById('doc-overlay').classList.remove('active');
     renderDocs();
@@ -870,8 +870,8 @@ document.getElementById('delete-doc-btn').addEventListener('click', async ()=>{
   const idVal = parseInt(document.getElementById('doc-id').value);
   const meta = docs.find(x=>x.id===idVal);
   if(!confirm('Excluir este documento e o arquivo anexado?')) return;
-  if(meta && meta.storage_path){ await supabase.storage.from(DOCS_BUCKET).remove([meta.storage_path]); }
-  await supabase.from('documentos').delete().eq('id', idVal);
+  if(meta && meta.storage_path){ await sb.storage.from(DOCS_BUCKET).remove([meta.storage_path]); }
+  await sb.from('documentos').delete().eq('id', idVal);
   await loadAll();
   document.getElementById('doc-overlay').classList.remove('active');
   renderDocs();
@@ -906,11 +906,11 @@ document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   const data = document.getElementById('nota-data').value;
   const casoId = document.getElementById('nota-caso').value || null;
   if(!texto){ toast('Escreva algo antes de salvar.'); return; }
-  await supabase.from('notas').insert({
+  await sb.from('notas').insert({
     autor: currentProfile.id, autor_nome: currentProfile.nome, data, texto, caso_id: casoId ? parseInt(casoId) : null
   });
   document.getElementById('nota-texto').value = '';
-  const { data: n } = await supabase.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
+  const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
   notas = n || [];
   renderNotas();
   toast('Nota adicionada.');
@@ -925,7 +925,7 @@ document.getElementById('cancel-perfil-btn').addEventListener('click', ()=> docu
 document.getElementById('perfil-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const nome = document.getElementById('perfil-nome').value.trim();
-  await supabase.from('profiles').update({ nome }).eq('id', currentProfile.id);
+  await sb.from('profiles').update({ nome }).eq('id', currentProfile.id);
   currentProfile.nome = nome;
   document.getElementById('user-badge').textContent = nome;
   document.getElementById('perfil-overlay').classList.remove('active');
