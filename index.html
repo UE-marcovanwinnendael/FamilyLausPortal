@@ -668,6 +668,9 @@ async function openCasoModal(id){
 }
 document.getElementById('add-caso-btn').addEventListener('click', ()=> openCasoModal(null));
 document.getElementById('cancel-caso-btn').addEventListener('click', ()=> document.getElementById('caso-overlay').classList.remove('active'));
+document.getElementById('caso-categoria').addEventListener('change', ()=>{
+  document.getElementById('caso-desc').value = '';
+});
 
 document.getElementById('caso-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
