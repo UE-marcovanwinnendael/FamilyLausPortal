@@ -226,7 +226,6 @@
       <input type="password" id="password-input" placeholder="Senha" autocomplete="current-password" required>
       <button type="submit" class="btn" id="login-btn">Entrar</button>
       <div class="error-msg" id="login-error"></div>
-      <button type="button" class="link-btn" id="forgot-btn" style="margin-top:6px;">Esqueci minha senha</button>
     </form>
   </div>
 </div>
@@ -503,14 +502,6 @@ document.getElementById('login-form').addEventListener('submit', async (e)=>{
   }
   session = data.session;
   await afterLogin();
-});
-
-document.getElementById('forgot-btn').addEventListener('click', async ()=>{
-  const email = document.getElementById('email-input').value.trim();
-  if(!email){ toast('Digite seu e-mail no campo acima primeiro.'); return; }
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
-  if(error){ toast('Não foi possível enviar o e-mail de redefinição.'); }
-  else{ toast('E-mail de redefinição de senha enviado, se a conta existir.'); }
 });
 
 document.getElementById('logout-btn').addEventListener('click', async ()=>{
