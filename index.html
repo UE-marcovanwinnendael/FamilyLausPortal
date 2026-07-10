@@ -1,247 +1,947 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <title>Portal Laus</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --paper:#f6f1e6; --paper-dark:#ede5d4; --card:#fffdf7; --ink:#1e2a22;
-      --forest:#2e4034; --forest-dark:#1e2c24; --brass:#9c7a32; --line:#d9cfb8;
-      --muted:#70796e; --danger:#8c3f35; --amber:#b4802b; --sage:#5c7a63; --purple:#75658f;
-      --shadow:0 14px 40px -28px rgba(30,42,34,.55);
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:"Source Sans 3",sans-serif}
-    button,input,select,textarea{font:inherit}
-    button{cursor:pointer}
-    .serif{font-family:"Fraunces",serif}
-    .mono{font-family:"IBM Plex Mono",monospace}
-    .hidden{display:none!important}
-    .muted{color:var(--muted)}
+<meta charset="UTF-8">
+<title>Portal Laus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --paper:#F6F1E6;
+    --paper-dark:#EDE5D4;
+    --ink:#1E2A22;
+    --forest:#2E4034;
+    --forest-dk:#1E2C24;
+    --brass:#9C7A32;
+    --brass-lt:#C9A25C;
+    --danger:#8C3F35;
+    --amber:#B4802B;
+    --sage:#5C7A63;
+    --slate:#767F72;
+    --line:#D9CFB8;
+    --card:#FFFDF7;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:'Source Sans 3', sans-serif; min-height:100vh;}
+  .serif{font-family:'Fraunces', serif;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
 
-    .login-screen{min-height:100vh;display:grid;place-items:center;padding:24px;background:
-      radial-gradient(circle at 20% 20%,rgba(46,64,52,.06),transparent 38%),
-      radial-gradient(circle at 80% 80%,rgba(156,122,50,.08),transparent 42%),var(--paper)}
-    .login-card{width:min(410px,100%);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:42px 38px 34px;box-shadow:var(--shadow);text-align:center}
-    .seal{width:66px;height:66px;margin:0 auto 18px;border:2px solid var(--forest);border-radius:50%;display:grid;place-items:center;color:var(--forest);font:600 27px "Fraunces";position:relative}
-    .seal:after{content:"";position:absolute;inset:5px;border:1px solid var(--brass);border-radius:50%}
-    .eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;color:var(--muted);margin-bottom:12px}
-    .login-card h1{margin:0 0 8px;font-size:28px}
-    .login-card p{margin:0 0 24px;line-height:1.5;color:var(--muted)}
-    .login-card form{display:grid;gap:12px;text-align:left}
-    label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.45px;color:var(--forest);margin-bottom:5px}
-    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);padding:11px 12px}
-    textarea{min-height:105px;resize:vertical}
-    input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:1px}
-    .error{color:var(--danger);font-size:13px;margin-top:3px}
-    .config-warning{background:#fff3dc;border:1px solid #e3c78f;border-radius:5px;padding:12px;text-align:left;color:#6e531d;font-size:13px;line-height:1.45}
+  #login-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(46,64,52,0.05), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(156,122,50,0.07), transparent 45%),
+      var(--paper);
+  }
+  .login-card{
+    background:var(--card); border:1px solid var(--line); border-radius:6px;
+    padding:44px 40px 36px; width:100%; max-width:390px;
+    box-shadow:0 2px 0 var(--line), 0 18px 40px -20px rgba(30,42,34,0.35);
+    text-align:center;
+  }
+  .seal{
+    width:64px;height:64px; margin:0 auto 18px; border-radius:50%;
+    border:2px solid var(--forest); display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:var(--forest); position:relative;
+  }
+  .seal::before{ content:''; position:absolute; inset:5px; border:1px solid var(--brass); border-radius:50%; }
+  .login-card h1{font-size:24px; margin:0 0 4px; letter-spacing:0.5px;}
+  .eyebrow{text-transform:uppercase; letter-spacing:2px; font-size:11px; color:var(--slate); margin-bottom:14px;}
+  .login-card p.tag{color:var(--slate); font-size:13.5px; margin:0 0 26px; line-height:1.5;}
+  input[type="password"], input[type="text"], input[type="email"], input[type="date"], select, textarea{
+    width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:4px;
+    background:#fff; font-family:'Source Sans 3', sans-serif; font-size:14.5px; color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{ outline:2px solid var(--brass); outline-offset:1px; }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:11px 20px; border-radius:4px; border:1px solid var(--forest);
+    background:var(--forest); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+    font-family:'Source Sans 3', sans-serif; transition:background .15s ease;
+  }
+  .btn:hover{background:var(--forest-dk);}
+  .btn.ghost{background:transparent; color:var(--forest);}
+  .btn.ghost:hover{background:rgba(46,64,52,0.06);}
+  .btn.danger{border-color:var(--danger); background:var(--danger);}
+  .btn.danger:hover{background:#722f27;}
+  .btn.small{padding:7px 13px; font-size:13px;}
+  .btn[disabled]{opacity:.6; cursor:not-allowed;}
+  .login-card form{margin-top:6px; display:flex; flex-direction:column; gap:12px;}
+  .error-msg{color:var(--danger); font-size:13px; margin-top:10px; display:none;}
+  .link-btn{background:none;border:none;color:var(--brass);font-size:12.5px;cursor:pointer;text-decoration:underline;padding:0;}
 
-    .btn{border:1px solid var(--forest);border-radius:5px;background:var(--forest);color:#fff;padding:10px 17px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}
-    .btn:hover{background:var(--forest-dark)}
-    .btn.small{padding:7px 11px;font-size:13px}
-    .btn.ghost{background:transparent;color:var(--forest)}
-    .btn.ghost:hover{background:rgba(46,64,52,.06)}
-    .btn.danger{border-color:var(--danger);background:var(--danger)}
-    .btn.danger:hover{background:#702f28}
-    .btn:disabled{opacity:.55;cursor:not-allowed}
+  #app{display:none; min-height:100vh;}
+  header.top{
+    background:var(--forest); color:#F6F1E6; padding:0 28px;
+    display:flex; align-items:center; justify-content:space-between; height:68px;
+    border-bottom:3px solid var(--brass);
+  }
+  header.top .brand{display:flex;align-items:center;gap:12px;}
+  header.top .seal-sm{
+    width:34px;height:34px;border-radius:50%; border:1.5px solid var(--brass-lt);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif; font-weight:600; font-size:15px;
+  }
+  header.top h2{font-size:18px; margin:0; letter-spacing:.3px; font-weight:600;}
+  header.top .sub{font-size:11px; opacity:.75; margin-top:1px;}
+  header.top .right{display:flex; align-items:center; gap:14px; font-size:13px;}
+  header.top .right button{color:#F6F1E6; border-color:rgba(246,241,230,.5);}
+  header.top .right button:hover{background:rgba(246,241,230,.1);}
 
-    .app{min-height:100vh}
-    .topbar{height:70px;background:var(--forest);color:var(--paper);border-bottom:3px solid var(--brass);padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:18px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .seal-small{width:36px;height:36px;border:1.5px solid #c9a25c;border-radius:50%;display:grid;place-items:center;font:600 16px "Fraunces"}
-    .brand strong{display:block;font-family:"Fraunces";font-size:18px}
-    .brand small{opacity:.75}
-    .user-menu{display:flex;align-items:center;gap:12px;font-size:13px}
-    .user-role{display:inline-block;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 8px;margin-left:6px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
-    .topbar .btn.ghost{color:var(--paper);border-color:rgba(255,255,255,.48)}
+  nav.tabs{
+    display:flex; gap:2px; background:var(--paper-dark); padding:0 28px;
+    border-bottom:1px solid var(--line); overflow-x:auto;
+  }
+  nav.tabs button{
+    background:none;border:none; padding:14px 16px 12px;
+    font-family:'Source Sans 3', sans-serif; font-size:14px; font-weight:600;
+    color:var(--slate); cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap;
+  }
+  nav.tabs button.active{color:var(--forest); border-bottom-color:var(--brass);}
 
-    .tabs{display:flex;gap:2px;overflow-x:auto;background:var(--paper-dark);border-bottom:1px solid var(--line);padding:0 28px}
-    .tabs button{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);padding:14px 15px 12px;white-space:nowrap;font-weight:700}
-    .tabs button.active{color:var(--forest);border-bottom-color:var(--brass)}
-    main{max-width:1200px;margin:0 auto;padding:27px 28px 64px}
-    .view{display:none}.view.active{display:block}
-    .view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
-    .view-head h1{font:600 28px "Fraunces";margin:0 0 3px}.view-head p{margin:0;color:var(--muted)}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
+  main{padding:26px 28px 60px; max-width:1180px; margin:0 auto;}
+  .view{display:none;}
+  .view.active{display:block;}
 
-    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:13px;margin-bottom:25px}
-    .stat{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--forest);border-radius:6px;padding:16px 17px}
-    .stat.warning{border-left-color:var(--amber)}.stat.danger{border-left-color:var(--danger)}.stat.success{border-left-color:var(--sage)}
-    .stat b{font:600 31px "Fraunces";display:block;line-height:1}.stat span{display:block;margin-top:6px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .panel-head{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap;}
+  .panel-head h1{font-size:26px; margin:0 0 4px;}
+  .panel-head .desc{color:var(--slate); font-size:13.5px; margin:0;}
 
-    .dashboard-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:18px}
-    .panel{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:18px;box-shadow:var(--shadow)}
-    .panel h2{font:600 19px "Fraunces";margin:0 0 14px}
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:28px;}
+  .stat-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px 18px; border-left:4px solid var(--forest);}
+  .stat-card .num{font-family:'Fraunces',serif; font-size:30px; font-weight:600; line-height:1;}
+  .stat-card .lbl{font-size:12px; color:var(--slate); margin-top:6px; text-transform:uppercase; letter-spacing:.5px;}
+  .stat-card.critico{border-left-color:var(--danger);}
+  .stat-card.alerta{border-left-color:var(--amber);}
+  .stat-card.ok{border-left-color:var(--sage);}
 
-    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-    .filters input{width:min(280px,100%)}.filters select{width:auto;min-width:155px}
-    .chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 12px;color:var(--ink);font-size:13px}
-    .chip.active{background:var(--forest);border-color:var(--forest);color:#fff}
+  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; align-items:center;}
+  .chip{padding:6px 13px; border-radius:20px; border:1px solid var(--line); background:#fff; font-size:12.5px; cursor:pointer; color:var(--ink);}
+  .chip.active{background:var(--forest); color:#fff; border-color:var(--forest);}
+  .filters select, .filters input[type=text]{width:auto; min-width:160px;}
 
-    .list{display:grid;gap:11px}
-    .case-card,.property-card,.report-card,.document-row,.team-card{background:var(--card);border:1px solid var(--line);border-radius:6px}
-    .case-card{padding:15px 17px;border-left:5px solid var(--muted);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px}
-    .case-card.priority-critico{border-left-color:var(--danger)}.case-card.priority-alta{border-left-color:var(--amber)}.case-card.priority-media{border-left-color:var(--sage)}
-    .case-card h3,.property-card h3,.report-card h3{margin:0;font:600 17px "Fraunces"}
-    .kicker{font-size:11px;text-transform:uppercase;letter-spacing:.55px;color:var(--brass);font-weight:700;margin-bottom:3px}
-    .description{color:var(--muted);margin:6px 0 0;line-height:1.45}
-    .meta{display:flex;gap:13px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin-top:9px}
-    .status{align-self:start;border:1.5px solid currentColor;border-radius:4px;padding:4px 8px;font:500 10.5px "IBM Plex Mono";text-transform:uppercase;letter-spacing:.75px;white-space:nowrap;transform:rotate(-1deg);color:var(--muted)}
-    .status.em-andamento{color:var(--amber)}.status.aguardando-terceiros{color:var(--purple)}.status.pendente{color:var(--danger)}.status.concluido{color:var(--sage)}.status.cancelado{text-decoration:line-through;color:#999}
-    .card-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+  .cases{display:flex; flex-direction:column; gap:12px;}
+  .ficha{
+    background:var(--card); border:1px solid var(--line); border-radius:5px; padding:16px 18px;
+    display:flex; gap:16px; align-items:flex-start; border-left:5px solid var(--slate); cursor:pointer;
+  }
+  .ficha:hover{box-shadow:0 4px 14px -8px rgba(30,42,34,0.4);}
+  .ficha.risco-critico, .ficha.risco-critico-{border-left-color:var(--danger);}
+  .ficha.risco-alta{border-left-color:var(--amber);}
+  .ficha.risco-media{border-left-color:var(--sage);}
+  .ficha.risco-baixa{border-left-color:var(--slate);}
+  .ficha .idnum{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--slate); width:34px; flex-shrink:0; padding-top:2px;}
+  .ficha .body{flex:1; min-width:0;}
+  .ficha .body h3{margin:0 0 4px; font-size:16px; font-family:'Fraunces',serif; font-weight:600;}
+  .ficha .body .cat{font-size:11.5px; color:var(--brass); text-transform:uppercase; letter-spacing:.5px; font-weight:600;}
+  .ficha .body .obs{font-size:13px; color:var(--slate); margin-top:6px; line-height:1.4;}
+  .ficha .meta{display:flex; gap:14px; margin-top:8px; font-size:12px; color:var(--slate); flex-wrap:wrap;}
+  .stamp{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; font-weight:600; letter-spacing:1px;
+    text-transform:uppercase; border:1.5px solid; border-radius:3px; padding:4px 9px;
+    transform:rotate(-2deg); white-space:nowrap; flex-shrink:0;
+  }
+  .stamp.s-nao-iniciado{color:var(--slate); border-color:var(--slate);}
+  .stamp.s-em-andamento{color:var(--amber); border-color:var(--amber);}
+  .stamp.s-aguardando{color:#7a6a9c; border-color:#7a6a9c;}
+  .stamp.s-pendente{color:var(--danger); border-color:var(--danger);}
+  .stamp.s-concluido{color:var(--sage); border-color:var(--sage);}
+  .stamp.s-cancelado{color:#9a9a9a; border-color:#9a9a9a; text-decoration:line-through;}
 
-    .report-card{padding:18px}
-    .report-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:start}
-    .date-box{width:63px;border:1px solid var(--line);border-radius:5px;text-align:center;overflow:hidden;background:#fff}
-    .date-box b{display:block;background:var(--forest);color:#fff;padding:4px;font-size:12px;text-transform:uppercase}.date-box span{font:600 25px "Fraunces";display:block;padding:5px 0 1px}.date-box small{display:block;padding-bottom:6px;color:var(--muted)}
-    .report-note{white-space:pre-wrap;line-height:1.55;margin-top:10px}
-    .comments{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}
-    .comment{padding:9px 11px;background:#fff;border:1px solid var(--line);border-radius:5px;margin-bottom:7px}
-    .comment-head{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}.comment p{margin:4px 0 0;white-space:pre-wrap}
-    .comment-form{display:flex;gap:7px;margin-top:10px}.comment-form input{flex:1}.comment-form .btn{flex:0 0 auto}
+  .empty{text-align:center; padding:60px 20px; color:var(--slate);}
+  .empty .big{font-size:38px; margin-bottom:10px;}
 
-    .properties-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:14px}
-    .property-card{border-top:4px solid var(--forest);padding:17px}
-    .property-card .status{display:inline-block;margin-top:12px}
+  .overlay{
+    display:none; position:fixed; inset:0; background:rgba(20,26,20,0.55);
+    align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:50;
+  }
+  .overlay.active{display:flex;}
+  .modal{background:var(--card); border-radius:6px; width:100%; max-width:600px; padding:28px 28px 24px; border:1px solid var(--line);}
+  .modal h2{margin:0 0 18px; font-size:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; color:var(--forest); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .modal-actions{display:flex; justify-content:space-between; margin-top:22px; gap:10px;}
+  textarea{min-height:70px; resize:vertical; font-family:'Source Sans 3',sans-serif;}
 
-    .documents{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:7px}
-    table{border-collapse:collapse;width:100%;min-width:760px}
-    th{text-align:left;background:var(--paper-dark);color:var(--muted);padding:11px 13px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
-    td{padding:12px 13px;border-bottom:1px solid var(--line);vertical-align:middle}tr:last-child td{border-bottom:0}
-    .file-name{font-weight:700}.file-meta{font-size:12px;color:var(--muted)}
+  .imoveis-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
+  .im-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid var(--forest); cursor:pointer;}
+  .im-card h3{margin:0 0 6px; font-family:'Fraunces',serif; font-size:17px;}
+  .im-card .status-line{margin-top:10px;}
 
-    .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
-    .team-card{padding:16px}.team-card strong{display:block;font-family:"Fraunces";font-size:17px}.team-card small{color:var(--muted)}
-    .role-badge{display:inline-block;margin-top:10px;border-radius:20px;padding:4px 9px;background:var(--paper-dark);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
-    .role-badge.admin{background:#e7dfc8;color:#6e531d}.role-badge.collaborator{background:#ece7f3;color:#604f7d}
+  .doc-table{width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+  .doc-table th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--slate); padding:12px 14px; background:var(--paper-dark); border-bottom:1px solid var(--line);}
+  .doc-table td{padding:12px 14px; font-size:13.5px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  .doc-table tr:last-child td{border-bottom:none;}
+  .doc-table .doc-name{font-weight:600;}
+  .yn{font-size:12px; font-weight:600; padding:3px 9px; border-radius:10px;}
+  .yn.sim{background:#E4EEE6; color:var(--sage);}
+  .yn.nao{background:#F3E6E4; color:var(--danger);}
+  .file-badge{font-size:12px; color:var(--slate); font-family:'IBM Plex Mono',monospace;}
 
-    .empty{text-align:center;padding:42px 18px;color:var(--muted);border:1px dashed var(--line);border-radius:7px;background:rgba(255,255,255,.35)}
-    .loading{text-align:center;padding:35px;color:var(--muted)}
+  .comments-box{margin-top:20px; border-top:1px solid var(--line); padding-top:16px;}
+  .comments-box h4{font-size:13px; text-transform:uppercase; letter-spacing:.4px; color:var(--forest); margin:0 0 10px;}
+  .comment{background:var(--paper-dark); border-radius:5px; padding:10px 12px; margin-bottom:8px; font-size:13.5px;}
+  .comment .meta{font-size:11.5px; color:var(--slate); margin-bottom:3px;}
+  .comment-form{display:flex; gap:8px; margin-top:10px;}
+  .comment-form textarea{min-height:44px; flex:1;}
 
-    .overlay{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;background:rgba(20,26,20,.58);padding:36px 15px;overflow-y:auto;z-index:30}
-    .overlay.active{display:flex}
-    .modal{width:min(590px,100%);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:25px;box-shadow:0 26px 70px -30px #000}
-    .modal h2{font:600 21px "Fraunces";margin:0 0 18px}.field{margin-bottom:13px}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+  .notas-list{display:flex; flex-direction:column; gap:14px;}
+  .nota-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px 18px; border-left:4px solid var(--brass);}
+  .nota-card .meta{font-size:12px; color:var(--slate); margin-bottom:6px; display:flex; gap:10px; flex-wrap:wrap;}
+  .nota-card .texto{font-size:14px; line-height:1.5; white-space:pre-wrap;}
+  .nota-form{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:22px;}
 
-    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--forest);color:#fff;border-radius:5px;padding:11px 17px;box-shadow:0 10px 30px -12px #000;z-index:50;display:none;max-width:min(540px,90vw);text-align:center}
-    .toast.error-toast{background:var(--danger)}
+  select, input, textarea { color: var(--ink); }
+  ::placeholder{color:#a8a290;}
 
-    @media(max-width:820px){.dashboard-grid{grid-template-columns:1fr}.report-top{grid-template-columns:auto minmax(0,1fr)}.report-top>.card-actions{grid-column:1/-1}.topbar{padding:0 16px}.tabs{padding:0 10px}main{padding:20px 15px 55px}}
-    @media(max-width:560px){.login-card{padding:34px 22px}.user-menu .identity{display:none}.case-card{grid-template-columns:1fr}.status{justify-self:start}.field-row{grid-template-columns:1fr}.comment-form{display:grid}.report-top{grid-template-columns:1fr}.date-box{width:100%;display:flex;align-items:center}.date-box b,.date-box span,.date-box small{display:inline-block;padding:7px}.date-box span{font-size:20px}}
-  </style>
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--forest); color:#fff; padding:11px 20px; border-radius:5px;
+    font-size:13.5px; display:none; z-index:100; box-shadow:0 8px 24px -8px rgba(0,0,0,0.4);
+  }
+  .center-loading{text-align:center; padding:60px; color:var(--slate);}
+
+  @media (max-width:640px){
+    header.top{padding:0 16px;}
+    main{padding:18px 16px 50px;}
+    .field-row{grid-template-columns:1fr;}
+    .ficha{flex-wrap:wrap;}
+  }
+</style>
 </head>
 <body>
-  <section id="login-screen" class="login-screen">
-    <div class="login-card">
-      <div class="seal">L</div>
-      <div class="eyebrow">Acesso restrito</div>
-      <h1 class="serif">Portal Laus</h1>
-      <p>Cada membro entra com sua própria conta. Não existe cadastro público.</p>
-      <div id="config-warning" class="config-warning hidden"></div>
-      <form id="login-form">
-        <div>
-          <label for="login-email">E-mail</label>
-          <input id="login-email" type="email" autocomplete="username" required>
-        </div>
-        <div>
-          <label for="login-password">Senha</label>
-          <input id="login-password" type="password" autocomplete="current-password" required>
-        </div>
-        <button class="btn" type="submit">Entrar</button>
-        <div id="login-error" class="error hidden" role="alert"></div>
-      </form>
-    </div>
-  </section>
 
-  <div id="app" class="app hidden">
-    <header class="topbar">
-      <div class="brand">
-        <div class="seal-small">L</div>
-        <div><strong>Portal Laus</strong><small>Gestão Patrimonial Familiar</small></div>
-      </div>
-      <div class="user-menu">
-        <span class="identity"><span id="user-name"></span><span id="user-role" class="user-role"></span></span>
-        <button id="logout-btn" class="btn ghost small" type="button">Sair</button>
-      </div>
-    </header>
-
-    <nav class="tabs" aria-label="Navegação principal">
-      <button class="active" data-view="dashboard" type="button">Painel</button>
-      <button data-view="cases" type="button">Casos</button>
-      <button data-view="reports" type="button">Relatórios</button>
-      <button data-view="properties" type="button">Imóveis</button>
-      <button data-view="documents" type="button">Documentos</button>
-      <button data-view="team" type="button">Equipe</button>
-    </nav>
-
-    <main>
-      <section id="view-dashboard" class="view active">
-        <div class="view-head"><div><h1>Visão geral</h1><p>Resumo dos casos, atualizações e documentos.</p></div><button class="btn" data-action="new-report" type="button">+ Nova atualização</button></div>
-        <div id="stats" class="stats"></div>
-        <div class="dashboard-grid">
-          <div class="panel"><h2>Atualizações recentes</h2><div id="dashboard-reports" class="list"></div></div>
-          <div class="panel"><h2>Prioridades em aberto</h2><div id="dashboard-cases" class="list"></div></div>
-        </div>
-      </section>
-
-      <section id="view-cases" class="view">
-        <div class="view-head"><div><h1>Casos</h1><p>Temas financeiros, jurídicos, contratuais e administrativos.</p></div><button class="btn" data-action="new-case" type="button">+ Novo caso</button></div>
-        <div class="filters">
-          <button class="chip active" data-case-filter="all" type="button">Todos</button>
-          <button class="chip" data-case-filter="open" type="button">Em aberto</button>
-          <button class="chip" data-case-filter="done" type="button">Concluídos</button>
-          <select id="case-category-filter"><option value="">Todas as categorias</option></select>
-          <input id="case-search" type="search" placeholder="Buscar caso...">
-        </div>
-        <div id="cases-list" class="list"></div>
-      </section>
-
-      <section id="view-reports" class="view">
-        <div class="view-head"><div><h1>Relatórios e notas</h1><p>Visão cronológica de tudo o que aconteceu, com data, autor e comentários.</p></div><button class="btn" data-action="new-report" type="button">+ Nova atualização</button></div>
-        <div class="filters">
-          <select id="report-case-filter"><option value="">Todos os casos</option></select>
-          <input id="report-search" type="search" placeholder="Buscar em relatórios...">
-        </div>
-        <div id="reports-list" class="list"></div>
-      </section>
-
-      <section id="view-properties" class="view">
-        <div class="view-head"><div><h1>Imóveis</h1><p>Situação, responsável e observações de cada bem.</p></div><button class="btn" data-action="new-property" type="button">+ Novo imóvel</button></div>
-        <div id="properties-grid" class="properties-grid"></div>
-      </section>
-
-      <section id="view-documents" class="view">
-        <div class="view-head"><div><h1>Documentos</h1><p>Arquivos privados, acessíveis apenas aos membros autorizados.</p></div><button class="btn" data-action="new-document" type="button">+ Enviar documento</button></div>
-        <div class="documents"><table><thead><tr><th>Documento</th><th>Vinculado a</th><th>Enviado por</th><th>Data</th><th>Ações</th></tr></thead><tbody id="documents-body"></tbody></table></div>
-      </section>
-
-      <section id="view-team" class="view">
-        <div class="view-head"><div><h1>Equipe</h1><p>Contas autorizadas no portal. Novas contas só podem ser criadas no Supabase.</p></div></div>
-        <div id="team-grid" class="team-grid"></div>
-      </section>
-    </main>
+<div id="login-screen">
+  <div class="login-card">
+    <div class="seal serif">L</div>
+    <div class="eyebrow">Acesso restrito à família</div>
+    <h1 class="serif">Portal Laus</h1>
+    <p class="tag" id="login-tag">Entre com sua conta para acessar o painel patrimonial da família.</p>
+    <form id="login-form">
+      <input type="email" id="email-input" placeholder="E-mail" autocomplete="username" required>
+      <input type="password" id="password-input" placeholder="Senha" autocomplete="current-password" required>
+      <button type="submit" class="btn" id="login-btn">Entrar</button>
+      <div class="error-msg" id="login-error"></div>
+      <button type="button" class="link-btn" id="forgot-btn" style="margin-top:6px;">Esqueci minha senha</button>
+    </form>
   </div>
+</div>
 
-  <div id="modal-overlay" class="overlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <h2 id="modal-title">Formulário</h2>
-      <form id="modal-form">
-        <div id="modal-fields"></div>
-        <div class="modal-actions">
-          <button id="modal-cancel" class="btn ghost" type="button">Cancelar</button>
-          <button id="modal-submit" class="btn" type="submit">Salvar</button>
-        </div>
-      </form>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="seal-sm serif">L</div>
+      <div>
+        <h2>Portal Laus</h2>
+        <div class="sub">Gestão Patrimonial Familiar</div>
+      </div>
     </div>
-  </div>
+    <div class="right">
+      <button class="btn ghost small" id="perfil-btn">👤 <span id="user-badge">...</span></button>
+      <button class="btn ghost small" id="logout-btn">Sair</button>
+    </div>
+  </header>
 
-  <div id="toast" class="toast" role="status"></div>
-  <script type="module" src="./app.js"></script>
+  <nav class="tabs">
+    <button data-view="painel" class="active">Painel Geral</button>
+    <button data-view="casos">Casos</button>
+    <button data-view="imoveis">Imóveis</button>
+    <button data-view="documentos">Documentos</button>
+    <button data-view="notas">Notas</button>
+  </nav>
+
+  <main>
+    <section class="view active" id="view-painel">
+      <div class="panel-head">
+        <div><h1 class="serif">Visão Geral</h1><p class="desc">Resumo de todos os temas em acompanhamento pela família.</p></div>
+      </div>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="panel-head"><div><h1 class="serif" style="font-size:19px;">Prioridades críticas</h1></div></div>
+      <div class="cases" id="criticos-list"></div>
+    </section>
+
+    <section class="view" id="view-casos">
+      <div class="panel-head">
+        <div><h1 class="serif">Casos</h1><p class="desc">Temas patrimoniais, financeiros, contratuais e jurídicos em acompanhamento.</p></div>
+        <button class="btn" id="add-caso-btn">+ Novo caso</button>
+      </div>
+      <div class="filters">
+        <div class="chip active" data-filter="todos">Todos</div>
+        <div class="chip" data-filter="abertos">Em aberto</div>
+        <div class="chip" data-filter="concluido">Concluídos</div>
+        <div class="chip" data-filter="cancelado">Cancelados</div>
+        <select id="cat-filter"><option value="">Todas as categorias</option></select>
+        <input type="text" id="search-casos" placeholder="Buscar por tema...">
+      </div>
+      <div class="cases" id="casos-list"></div>
+    </section>
+
+    <section class="view" id="view-imoveis">
+      <div class="panel-head">
+        <div><h1 class="serif">Imóveis</h1><p class="desc">Situação de ocupação, contratos e manutenção de cada bem.</p></div>
+        <button class="btn" id="add-imovel-btn">+ Novo imóvel</button>
+      </div>
+      <div class="imoveis-grid" id="imoveis-grid"></div>
+    </section>
+
+    <section class="view" id="view-documentos">
+      <div class="panel-head">
+        <div><h1 class="serif">Documentos</h1><p class="desc">Envie e acompanhe os documentos necessários para cada item do painel.</p></div>
+        <button class="btn" id="add-doc-btn">+ Novo documento</button>
+      </div>
+      <table class="doc-table">
+        <thead><tr><th>Documento</th><th>Tipo</th><th>Recebido?</th><th>Arquivo</th><th>Responsável</th><th style="text-align:right;">Ações</th></tr></thead>
+        <tbody id="doc-table-body"></tbody>
+      </table>
+    </section>
+
+    <section class="view" id="view-notas">
+      <div class="panel-head">
+        <div><h1 class="serif">Notas / Relatórios</h1><p class="desc">Registro de acompanhamento com data — o histórico de tudo o que foi discutido ou decidido.</p></div>
+      </div>
+      <div class="nota-form">
+        <div class="field-row">
+          <div class="field"><label>Data</label><input type="date" id="nota-data"></div>
+          <div class="field"><label>Relacionado a (opcional)</label><select id="nota-caso"><option value="">Nenhum caso específico</option></select></div>
+        </div>
+        <div class="field"><label>Anotação</label><textarea id="nota-texto" placeholder="O que aconteceu, o que foi decidido, próximos passos..."></textarea></div>
+        <button class="btn small" id="add-nota-btn">Adicionar nota</button>
+      </div>
+      <div class="notas-list" id="notas-list"></div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL: caso -->
+<div class="overlay" id="caso-overlay">
+  <div class="modal">
+    <h2 class="serif" id="caso-modal-title">Novo caso</h2>
+    <form id="caso-form">
+      <input type="hidden" id="caso-id">
+      <div class="field"><label>Tema</label><input type="text" id="caso-tema" required placeholder="Ex: Contrato de locação Bella Sintra"></div>
+      <div class="field"><label>Categoria</label>
+        <select id="caso-categoria">
+          <option>Financeiro</option><option>Imóveis</option><option>Contratos</option><option>Documentos</option>
+          <option>Processos</option><option>Administrativo</option><option>Societário</option><option>Propostas</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="field"><label>Descrição / escopo</label><textarea id="caso-desc" placeholder="O que precisa ser resolvido ou acompanhado"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>Prioridade / risco</label>
+          <select id="caso-risco"><option>Crítico</option><option>Alta</option><option>Média</option><option>Baixa</option></select>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="caso-status">
+            <option>Não iniciado</option><option>Em andamento</option><option>Aguardando terceiros</option>
+            <option>Pendente</option><option>Concluído</option><option>Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Responsável</label><input type="text" id="caso-responsavel" placeholder="Nome"></div>
+        <div class="field"><label>Prazo</label><input type="date" id="caso-prazo"></div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="caso-obs" placeholder="Atualizações, decisões, próximos passos"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger small" id="delete-caso-btn" style="display:none;">Excluir</button>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn ghost small" id="cancel-caso-btn">Cancelar</button>
+          <button type="submit" class="btn small">Salvar</button>
+        </div>
+      </div>
+      <div class="comments-box" id="comments-box" style="display:none;">
+        <h4>Comentários</h4>
+        <div id="comments-list"></div>
+        <div class="comment-form">
+          <textarea id="new-comment" placeholder="Escreva um comentário..."></textarea>
+          <button type="button" class="btn small" id="add-comment-btn">Enviar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: imovel -->
+<div class="overlay" id="imovel-overlay">
+  <div class="modal">
+    <h2 class="serif" id="imovel-modal-title">Novo imóvel</h2>
+    <form id="imovel-form">
+      <input type="hidden" id="imovel-id">
+      <div class="field"><label>Nome do imóvel</label><input type="text" id="imovel-nome" required placeholder="Ex: Casa Rio Branco"></div>
+      <div class="field-row">
+        <div class="field"><label>Situação / ocupação</label><input type="text" id="imovel-situacao" placeholder="Ex: Alugado, vago, em reforma"></div>
+        <div class="field"><label>Status</label>
+          <select id="imovel-status">
+            <option>Não iniciado</option><option>Em andamento</option><option>Aguardando terceiros</option>
+            <option>Pendente</option><option>Concluído</option><option>Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Responsável</label><input type="text" id="imovel-responsavel"></div>
+      <div class="field"><label>Observações</label><textarea id="imovel-obs" placeholder="Manutenção, vistorias, seguros, contratos"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger small" id="delete-imovel-btn" style="display:none;">Excluir</button>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn ghost small" id="cancel-imovel-btn">Cancelar</button>
+          <button type="submit" class="btn small">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: documento -->
+<div class="overlay" id="doc-overlay">
+  <div class="modal">
+    <h2 class="serif" id="doc-modal-title">Novo documento</h2>
+    <form id="doc-form">
+      <input type="hidden" id="doc-id">
+      <div class="field"><label>Nome do documento</label><input type="text" id="doc-nome" required placeholder="Ex: Escritura Casa Rio Branco"></div>
+      <div class="field-row">
+        <div class="field"><label>Tipo</label>
+          <select id="doc-tipo">
+            <option>Financeiro</option><option>Contrato</option><option>Imóvel</option><option>Societário</option>
+            <option>Proposta</option><option>Administrativo</option><option>Judicial</option><option>Outro</option>
+          </select>
+        </div>
+        <div class="field"><label>Recebido?</label>
+          <select id="doc-recebido"><option value="false">Não</option><option value="true">Sim</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Responsável</label><input type="text" id="doc-responsavel"></div>
+      <div class="field"><label>Arquivo (opcional)</label>
+        <input type="file" id="doc-file-input">
+        <div class="file-badge" id="doc-current-file" style="margin-top:6px;"></div>
+      </div>
+      <div class="field"><label>Observações / pendência</label><textarea id="doc-obs"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger small" id="delete-doc-btn" style="display:none;">Excluir</button>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn ghost small" id="cancel-doc-btn">Cancelar</button>
+          <button type="submit" class="btn small" id="doc-save-btn">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: perfil -->
+<div class="overlay" id="perfil-overlay">
+  <div class="modal" style="max-width:400px;">
+    <h2 class="serif">Meu perfil</h2>
+    <form id="perfil-form">
+      <div class="field"><label>Seu nome</label><input type="text" id="perfil-nome" required placeholder="Como a família deve te ver"></div>
+      <div class="modal-actions">
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn ghost small" id="cancel-perfil-btn">Cancelar</button>
+          <button type="submit" class="btn small">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG — dados do teu projeto Supabase ================= */
+const SUPABASE_URL = "https://pshosngknthzqkrdwgel.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_uu1H1MOSeYDe7_00vK_13w_3H8iHNGi";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const DOCS_BUCKET = "documentos";
+
+/* ================= STATE ================= */
+let session = null;
+let currentProfile = null;
+let casos = [];
+let imoveis = [];
+let docs = [];
+let notas = [];
+let activeFilter = 'todos';
+let activeCat = '';
+let searchTerm = '';
+let editingCasoId = null;
+let pendingFile = null;
+
+/* ================= UTIL ================= */
+function slug(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(()=>{ t.style.display='none'; }, 2600);
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const parts = d.split('-');
+  if(parts.length===3) return parts[2]+'/'+parts[1]+'/'+parts[0];
+  return d;
+}
+function fmtDateTime(dt){
+  const d = new Date(dt);
+  return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+
+/* ================= AUTH ================= */
+document.getElementById('login-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Entrando...';
+  const email = document.getElementById('email-input').value.trim();
+  const password = document.getElementById('password-input').value;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Entrar';
+  if(error){
+    errEl.textContent = 'E-mail ou senha incorretos.';
+    errEl.style.display = 'block';
+    return;
+  }
+  session = data.session;
+  await afterLogin();
+});
+
+document.getElementById('forgot-btn').addEventListener('click', async ()=>{
+  const email = document.getElementById('email-input').value.trim();
+  if(!email){ toast('Digite seu e-mail no campo acima primeiro.'); return; }
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if(error){ toast('Não foi possível enviar o e-mail de redefinição.'); }
+  else{ toast('E-mail de redefinição de senha enviado, se a conta existir.'); }
+});
+
+document.getElementById('logout-btn').addEventListener('click', async ()=>{
+  await supabase.auth.signOut();
+  session = null; currentProfile = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('password-input').value = '';
+});
+
+async function afterLogin(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  const { data: { user } } = await supabase.auth.getUser();
+  let { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+  if(!profile){
+    await supabase.from('profiles').insert({ id: user.id, nome: user.email.split('@')[0] });
+    const r = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+    profile = r.data;
+  }
+  currentProfile = profile;
+  document.getElementById('user-badge').textContent = profile.nome || user.email;
+
+  await loadAll();
+  renderPainel(); renderCasos(); renderImoveis(); renderDocs(); renderNotas();
+}
+
+// check existing session on load
+(async ()=>{
+  const { data } = await supabase.auth.getSession();
+  if(data.session){
+    session = data.session;
+    await afterLogin();
+  }
+})();
+
+/* ================= LOAD DATA ================= */
+async function loadAll(){
+  const [c, i, d, n] = await Promise.all([
+    supabase.from('casos').select('*').order('id'),
+    supabase.from('imoveis').select('*').order('id'),
+    supabase.from('documentos').select('*').order('id'),
+    supabase.from('notas').select('*').order('data', {ascending:false}).order('created_at', {ascending:false}),
+  ]);
+  casos = c.data || [];
+  imoveis = i.data || [];
+  docs = d.data || [];
+  notas = n.data || [];
+}
+
+/* ================= PAINEL ================= */
+function renderPainel(){
+  const total = casos.length;
+  const concluidos = casos.filter(c=>c.status==='Concluído').length;
+  const emAndamento = casos.filter(c=>c.status==='Em andamento').length;
+  const abertos = casos.filter(c=>!['Concluído','Cancelado'].includes(c.status)).length;
+  const criticos = casos.filter(c=> c.risco==='Crítico' && !['Concluído','Cancelado'].includes(c.status));
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total de casos</div></div>
+    <div class="stat-card alerta"><div class="num">${abertos}</div><div class="lbl">Em aberto</div></div>
+    <div class="stat-card ok"><div class="num">${emAndamento}</div><div class="lbl">Em andamento</div></div>
+    <div class="stat-card critico"><div class="num">${criticos.length}</div><div class="lbl">Prioridade crítica</div></div>
+    <div class="stat-card ok"><div class="num">${concluidos}</div><div class="lbl">Concluídos</div></div>
+  `;
+  const listEl = document.getElementById('criticos-list');
+  listEl.innerHTML = criticos.length===0
+    ? `<div class="empty"><div class="big">✓</div>Nenhum caso crítico em aberto no momento.</div>`
+    : criticos.map(fichaHTML).join('');
+  attachFichaHandlers(listEl);
+}
+
+/* ================= CASOS ================= */
+function riscoClass(risco){ return 'risco-' + slug(risco === 'Crítico' ? 'critico' : risco); }
+function statusClass(status){
+  const map = {'Não iniciado':'s-nao-iniciado','Em andamento':'s-em-andamento','Aguardando terceiros':'s-aguardando','Pendente':'s-pendente','Concluído':'s-concluido','Cancelado':'s-cancelado'};
+  return map[status] || 's-nao-iniciado';
+}
+function fichaHTML(c){
+  return `
+  <div class="ficha ${riscoClass(c.risco)}" data-id="${c.id}">
+    <div class="idnum mono">#${String(c.id).padStart(2,'0')}</div>
+    <div class="body">
+      <div class="cat">${c.categoria||''}</div>
+      <h3>${c.tema}</h3>
+      ${c.descricao ? `<div class="obs">${c.descricao}</div>` : ''}
+      <div class="meta">
+        <span>Risco: <strong>${c.risco}</strong></span>
+        ${c.responsavel ? `<span>Responsável: <strong>${c.responsavel}</strong></span>` : ''}
+        ${c.prazo ? `<span>Prazo: <strong>${fmtDate(c.prazo)}</strong></span>` : ''}
+      </div>
+      ${c.obs ? `<div class="obs" style="margin-top:8px; font-style:italic;">"${c.obs}"</div>` : ''}
+    </div>
+    <div class="stamp ${statusClass(c.status)}">${c.status}</div>
+  </div>`;
+}
+function attachFichaHandlers(container){
+  container.querySelectorAll('.ficha').forEach(el=>{
+    el.addEventListener('click', ()=> openCasoModal(parseInt(el.dataset.id)));
+  });
+}
+function renderCasos(){
+  const catSel = document.getElementById('cat-filter');
+  const cats = [...new Set(casos.map(c=>c.categoria).filter(Boolean))].sort();
+  const keep = catSel.value;
+  catSel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  catSel.value = activeCat;
+
+  let filtered = casos.slice();
+  if(activeFilter==='abertos') filtered = filtered.filter(c=>!['Concluído','Cancelado'].includes(c.status));
+  if(activeFilter==='concluido') filtered = filtered.filter(c=>c.status==='Concluído');
+  if(activeFilter==='cancelado') filtered = filtered.filter(c=>c.status==='Cancelado');
+  if(activeCat) filtered = filtered.filter(c=>c.categoria===activeCat);
+  if(searchTerm) filtered = filtered.filter(c=> ((c.tema||'')+(c.descricao||'')).toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const order = {'Crítico':0,'Alta':1,'Média':2,'Baixa':3};
+  filtered.sort((a,b)=> (order[a.risco]??9) - (order[b.risco]??9) || a.id-b.id);
+
+  const listEl = document.getElementById('casos-list');
+  listEl.innerHTML = filtered.length===0
+    ? `<div class="empty"><div class="big">—</div>Nenhum caso encontrado com esses filtros.</div>`
+    : filtered.map(fichaHTML).join('');
+  attachFichaHandlers(listEl);
+}
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    activeFilter = chip.dataset.filter;
+    renderCasos();
+  });
+});
+document.getElementById('cat-filter').addEventListener('change', (e)=>{ activeCat = e.target.value; renderCasos(); });
+document.getElementById('search-casos').addEventListener('input', (e)=>{ searchTerm = e.target.value; renderCasos(); });
+
+/* ---- caso modal + comentarios ---- */
+async function openCasoModal(id){
+  editingCasoId = id || null;
+  const overlay = document.getElementById('caso-overlay');
+  const isNew = !id;
+  document.getElementById('caso-modal-title').textContent = isNew ? 'Novo caso' : 'Editar caso';
+  document.getElementById('delete-caso-btn').style.display = isNew ? 'none' : 'inline-flex';
+  document.getElementById('comments-box').style.display = isNew ? 'none' : 'block';
+  const c = isNew ? {id:'',tema:'',categoria:'Financeiro',descricao:'',risco:'Alta',status:'Não iniciado',responsavel:'',prazo:'',obs:''} : casos.find(x=>x.id===id);
+  document.getElementById('caso-id').value = c.id;
+  document.getElementById('caso-tema').value = c.tema || '';
+  document.getElementById('caso-categoria').value = c.categoria || 'Financeiro';
+  document.getElementById('caso-desc').value = c.descricao || '';
+  document.getElementById('caso-risco').value = c.risco || 'Alta';
+  document.getElementById('caso-status').value = c.status || 'Não iniciado';
+  document.getElementById('caso-responsavel').value = c.responsavel || '';
+  document.getElementById('caso-prazo').value = c.prazo || '';
+  document.getElementById('caso-obs').value = c.obs || '';
+  overlay.classList.add('active');
+  if(!isNew) await loadComments(id);
+}
+document.getElementById('add-caso-btn').addEventListener('click', ()=> openCasoModal(null));
+document.getElementById('cancel-caso-btn').addEventListener('click', ()=> document.getElementById('caso-overlay').classList.remove('active'));
+
+document.getElementById('caso-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const idVal = document.getElementById('caso-id').value;
+  const data = {
+    tema: document.getElementById('caso-tema').value.trim(),
+    categoria: document.getElementById('caso-categoria').value,
+    descricao: document.getElementById('caso-desc').value.trim(),
+    risco: document.getElementById('caso-risco').value,
+    status: document.getElementById('caso-status').value,
+    responsavel: document.getElementById('caso-responsavel').value.trim(),
+    prazo: document.getElementById('caso-prazo').value || null,
+    obs: document.getElementById('caso-obs').value.trim(),
+    updated_at: new Date().toISOString(),
+  };
+  if(idVal){
+    await supabase.from('casos').update(data).eq('id', idVal);
+  } else {
+    await supabase.from('casos').insert(data);
+  }
+  await loadAll();
+  document.getElementById('caso-overlay').classList.remove('active');
+  renderPainel(); renderCasos(); populateNotaCasoSelect();
+  toast('Caso salvo.');
+});
+document.getElementById('delete-caso-btn').addEventListener('click', async ()=>{
+  const idVal = parseInt(document.getElementById('caso-id').value);
+  if(!confirm('Excluir este caso? Esta ação não pode ser desfeita.')) return;
+  await supabase.from('casos').delete().eq('id', idVal);
+  await loadAll();
+  document.getElementById('caso-overlay').classList.remove('active');
+  renderPainel(); renderCasos(); populateNotaCasoSelect();
+  toast('Caso excluído.');
+});
+
+async function loadComments(casoId){
+  const { data } = await supabase.from('comentarios').select('*').eq('caso_id', casoId).order('created_at');
+  const list = document.getElementById('comments-list');
+  list.innerHTML = (data||[]).length===0
+    ? `<div style="font-size:13px;color:var(--slate);">Nenhum comentário ainda.</div>`
+    : data.map(cm=>`<div class="comment"><div class="meta">${cm.autor_nome||'—'} · ${fmtDateTime(cm.created_at)}</div>${cm.texto}</div>`).join('');
+}
+document.getElementById('add-comment-btn').addEventListener('click', async ()=>{
+  const texto = document.getElementById('new-comment').value.trim();
+  if(!texto || !editingCasoId) return;
+  await supabase.from('comentarios').insert({
+    caso_id: editingCasoId, autor: currentProfile.id, autor_nome: currentProfile.nome, texto
+  });
+  document.getElementById('new-comment').value = '';
+  await loadComments(editingCasoId);
+});
+
+/* ================= IMOVEIS ================= */
+function renderImoveis(){
+  const grid = document.getElementById('imoveis-grid');
+  grid.innerHTML = imoveis.length===0
+    ? `<div class="empty"><div class="big">—</div>Nenhum imóvel cadastrado.</div>`
+    : imoveis.map(im=>`
+    <div class="im-card" data-id="${im.id}">
+      <h3>${im.nome}</h3>
+      ${im.situacao ? `<div class="obs" style="color:var(--slate); font-size:13px;">${im.situacao}</div>` : ''}
+      ${im.responsavel ? `<div class="obs" style="color:var(--slate); font-size:12.5px; margin-top:4px;">Responsável: ${im.responsavel}</div>` : ''}
+      ${im.obs ? `<div class="obs" style="margin-top:8px; font-size:13px;">${im.obs}</div>` : ''}
+      <div class="status-line"><span class="stamp ${statusClass(im.status)}">${im.status}</span></div>
+    </div>`).join('');
+  grid.querySelectorAll('.im-card').forEach(el=>{
+    el.addEventListener('click', ()=> openImovelModal(parseInt(el.dataset.id)));
+  });
+}
+function openImovelModal(id){
+  const overlay = document.getElementById('imovel-overlay');
+  const isNew = !id;
+  document.getElementById('imovel-modal-title').textContent = isNew ? 'Novo imóvel' : 'Editar imóvel';
+  document.getElementById('delete-imovel-btn').style.display = isNew ? 'none' : 'inline-flex';
+  const im = isNew ? {id:'',nome:'',situacao:'',status:'Não iniciado',responsavel:'',obs:''} : imoveis.find(x=>x.id===id);
+  document.getElementById('imovel-id').value = im.id;
+  document.getElementById('imovel-nome').value = im.nome || '';
+  document.getElementById('imovel-situacao').value = im.situacao || '';
+  document.getElementById('imovel-status').value = im.status || 'Não iniciado';
+  document.getElementById('imovel-responsavel').value = im.responsavel || '';
+  document.getElementById('imovel-obs').value = im.obs || '';
+  overlay.classList.add('active');
+}
+document.getElementById('add-imovel-btn').addEventListener('click', ()=> openImovelModal(null));
+document.getElementById('cancel-imovel-btn').addEventListener('click', ()=> document.getElementById('imovel-overlay').classList.remove('active'));
+document.getElementById('imovel-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const idVal = document.getElementById('imovel-id').value;
+  const data = {
+    nome: document.getElementById('imovel-nome').value.trim(),
+    situacao: document.getElementById('imovel-situacao').value.trim(),
+    status: document.getElementById('imovel-status').value,
+    responsavel: document.getElementById('imovel-responsavel').value.trim(),
+    obs: document.getElementById('imovel-obs').value.trim(),
+    updated_at: new Date().toISOString(),
+  };
+  if(idVal){ await supabase.from('imoveis').update(data).eq('id', idVal); }
+  else{ await supabase.from('imoveis').insert(data); }
+  await loadAll();
+  document.getElementById('imovel-overlay').classList.remove('active');
+  renderImoveis();
+  toast('Imóvel salvo.');
+});
+document.getElementById('delete-imovel-btn').addEventListener('click', async ()=>{
+  const idVal = parseInt(document.getElementById('imovel-id').value);
+  if(!confirm('Excluir este imóvel?')) return;
+  await supabase.from('imoveis').delete().eq('id', idVal);
+  await loadAll();
+  document.getElementById('imovel-overlay').classList.remove('active');
+  renderImoveis();
+  toast('Imóvel excluído.');
+});
+
+/* ================= DOCUMENTOS ================= */
+function renderDocs(){
+  const body = document.getElementById('doc-table-body');
+  body.innerHTML = docs.length===0
+    ? `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:30px;">Nenhum documento cadastrado.</td></tr>`
+    : docs.map(d=>`
+    <tr>
+      <td class="doc-name">${d.nome}</td>
+      <td>${d.tipo||'—'}</td>
+      <td><span class="yn ${d.recebido?'sim':'nao'}">${d.recebido?'Sim':'Não'}</span></td>
+      <td class="file-badge">${d.storage_path ? '📎 '+d.file_name : '— sem arquivo —'}</td>
+      <td>${d.responsavel || '—'}</td>
+      <td style="text-align:right; white-space:nowrap;">
+        ${d.storage_path ? `<button class="btn ghost small" data-download="${d.id}">Baixar</button>` : ''}
+        <button class="btn ghost small" data-edit="${d.id}">Editar</button>
+      </td>
+    </tr>`).join('');
+  body.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', ()=> openDocModal(parseInt(btn.dataset.edit))));
+  body.querySelectorAll('[data-download]').forEach(btn=> btn.addEventListener('click', ()=> downloadDoc(parseInt(btn.dataset.download))));
+}
+async function downloadDoc(id){
+  const meta = docs.find(d=>d.id===id);
+  if(!meta || !meta.storage_path) return;
+  const { data, error } = await supabase.storage.from(DOCS_BUCKET).createSignedUrl(meta.storage_path, 120);
+  if(error || !data){ toast('Não foi possível gerar o link de download.'); return; }
+  window.open(data.signedUrl, '_blank');
+}
+function openDocModal(id){
+  const overlay = document.getElementById('doc-overlay');
+  const isNew = !id;
+  document.getElementById('doc-modal-title').textContent = isNew ? 'Novo documento' : 'Editar documento';
+  document.getElementById('delete-doc-btn').style.display = isNew ? 'none' : 'inline-flex';
+  const d = isNew ? {id:'',nome:'',tipo:'Financeiro',recebido:false,responsavel:'',obs:'',storage_path:null,file_name:''} : docs.find(x=>x.id===id);
+  document.getElementById('doc-id').value = d.id;
+  document.getElementById('doc-nome').value = d.nome || '';
+  document.getElementById('doc-tipo').value = d.tipo || 'Financeiro';
+  document.getElementById('doc-recebido').value = String(!!d.recebido);
+  document.getElementById('doc-responsavel').value = d.responsavel || '';
+  document.getElementById('doc-obs').value = d.obs || '';
+  document.getElementById('doc-file-input').value = '';
+  document.getElementById('doc-current-file').textContent = d.storage_path ? ('Arquivo atual: '+d.file_name) : '';
+  pendingFile = null;
+  overlay.classList.add('active');
+}
+document.getElementById('add-doc-btn').addEventListener('click', ()=> openDocModal(null));
+document.getElementById('cancel-doc-btn').addEventListener('click', ()=> document.getElementById('doc-overlay').classList.remove('active'));
+document.getElementById('doc-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 40*1024*1024){ toast('Arquivo muito grande (máx. 40 MB).'); e.target.value=''; return; }
+  pendingFile = file;
+});
+document.getElementById('doc-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const saveBtn = document.getElementById('doc-save-btn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Salvando...';
+  const idVal = document.getElementById('doc-id').value;
+  const data = {
+    nome: document.getElementById('doc-nome').value.trim(),
+    tipo: document.getElementById('doc-tipo').value,
+    recebido: document.getElementById('doc-recebido').value === 'true',
+    responsavel: document.getElementById('doc-responsavel').value.trim(),
+    obs: document.getElementById('doc-obs').value.trim(),
+  };
+  try{
+    let targetId = idVal ? parseInt(idVal) : null;
+    if(pendingFile){
+      const path = `${Date.now()}_${pendingFile.name}`.replace(/\s+/g,'_');
+      const { error: upErr } = await supabase.storage.from(DOCS_BUCKET).upload(path, pendingFile, { upsert:false });
+      if(upErr){ toast('Erro ao enviar o arquivo.'); saveBtn.disabled=false; saveBtn.textContent='Salvar'; return; }
+      data.storage_path = path;
+      data.file_name = pendingFile.name;
+      data.file_mime = pendingFile.type;
+      data.uploaded_by = currentProfile.id;
+    }
+    if(targetId){ await supabase.from('documentos').update(data).eq('id', targetId); }
+    else{ await supabase.from('documentos').insert(data); }
+    await loadAll();
+    document.getElementById('doc-overlay').classList.remove('active');
+    renderDocs();
+    toast('Documento salvo.');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Salvar';
+  }
+});
+document.getElementById('delete-doc-btn').addEventListener('click', async ()=>{
+  const idVal = parseInt(document.getElementById('doc-id').value);
+  const meta = docs.find(x=>x.id===idVal);
+  if(!confirm('Excluir este documento e o arquivo anexado?')) return;
+  if(meta && meta.storage_path){ await supabase.storage.from(DOCS_BUCKET).remove([meta.storage_path]); }
+  await supabase.from('documentos').delete().eq('id', idVal);
+  await loadAll();
+  document.getElementById('doc-overlay').classList.remove('active');
+  renderDocs();
+  toast('Documento excluído.');
+});
+
+/* ================= NOTAS ================= */
+function populateNotaCasoSelect(){
+  const sel = document.getElementById('nota-caso');
+  sel.innerHTML = '<option value="">Nenhum caso específico</option>' + casos.map(c=>`<option value="${c.id}">#${c.id} — ${c.tema}</option>`).join('');
+}
+function renderNotas(){
+  populateNotaCasoSelect();
+  document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
+  const list = document.getElementById('notas-list');
+  list.innerHTML = notas.length===0
+    ? `<div class="empty"><div class="big">—</div>Nenhuma nota registrada ainda.</div>`
+    : notas.map(n=>{
+        const caso = casos.find(c=>c.id===n.caso_id);
+        return `<div class="nota-card">
+          <div class="meta">
+            <strong>${fmtDate(n.data)}</strong>
+            <span>${n.autor_nome||'—'}</span>
+            ${caso ? `<span>· caso #${caso.id} — ${caso.tema}</span>` : ''}
+          </div>
+          <div class="texto">${n.texto}</div>
+        </div>`;
+      }).join('');
+}
+document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
+  const texto = document.getElementById('nota-texto').value.trim();
+  const data = document.getElementById('nota-data').value;
+  const casoId = document.getElementById('nota-caso').value || null;
+  if(!texto){ toast('Escreva algo antes de salvar.'); return; }
+  await supabase.from('notas').insert({
+    autor: currentProfile.id, autor_nome: currentProfile.nome, data, texto, caso_id: casoId ? parseInt(casoId) : null
+  });
+  document.getElementById('nota-texto').value = '';
+  const { data: n } = await supabase.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
+  notas = n || [];
+  renderNotas();
+  toast('Nota adicionada.');
+});
+
+/* ================= PERFIL ================= */
+document.getElementById('perfil-btn').addEventListener('click', ()=>{
+  document.getElementById('perfil-nome').value = currentProfile.nome || '';
+  document.getElementById('perfil-overlay').classList.add('active');
+});
+document.getElementById('cancel-perfil-btn').addEventListener('click', ()=> document.getElementById('perfil-overlay').classList.remove('active'));
+document.getElementById('perfil-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const nome = document.getElementById('perfil-nome').value.trim();
+  await supabase.from('profiles').update({ nome }).eq('id', currentProfile.id);
+  currentProfile.nome = nome;
+  document.getElementById('user-badge').textContent = nome;
+  document.getElementById('perfil-overlay').classList.remove('active');
+  toast('Perfil atualizado.');
+});
+
+/* ================= NAV ================= */
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.view').forEach(v=> v.classList.toggle('active', v.id === 'view-'+btn.dataset.view));
+  });
+});
+</script>
 </body>
 </html>
