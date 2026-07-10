@@ -450,8 +450,14 @@
 /* ================= CONFIG — dados do teu projeto Supabase ================= */
 const SUPABASE_URL = "https://pshosngknthzqkrdwgel.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_uu1H1MOSeYDe7_00vK_13w_3H8iHNGi";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const DOCS_BUCKET = "documentos";
+
+if(typeof window.supabase === 'undefined'){
+  document.getElementById('login-error').textContent = 'Erro: a biblioteca do Supabase não carregou (sem internet, ou o link do CDN foi bloqueado). Verifique sua conexão e recarregue a página.';
+  document.getElementById('login-error').style.display = 'block';
+  throw new Error('Supabase library not loaded');
+}
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ================= STATE ================= */
 let session = null;
