@@ -1,1124 +1,247 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Portal Laus</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F1E6;
-    --paper-dark:#EDE5D4;
-    --ink:#1E2A22;
-    --forest:#2E4034;
-    --forest-dk:#1E2C24;
-    --brass:#9C7A32;
-    --brass-lt:#C9A25C;
-    --danger:#8C3F35;
-    --amber:#B4802B;
-    --sage:#5C7A63;
-    --slate:#767F72;
-    --line:#D9CFB8;
-    --card:#FFFDF7;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Source Sans 3', sans-serif;
-    min-height:100vh;
-    background-image:
-      linear-gradient(var(--paper) 0%, var(--paper) 100%);
-  }
-  .serif{font-family:'Fraunces', serif;}
-  .mono{font-family:'IBM Plex Mono', monospace;}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Portal Laus</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --paper:#f6f1e6; --paper-dark:#ede5d4; --card:#fffdf7; --ink:#1e2a22;
+      --forest:#2e4034; --forest-dark:#1e2c24; --brass:#9c7a32; --line:#d9cfb8;
+      --muted:#70796e; --danger:#8c3f35; --amber:#b4802b; --sage:#5c7a63; --purple:#75658f;
+      --shadow:0 14px 40px -28px rgba(30,42,34,.55);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:"Source Sans 3",sans-serif}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .serif{font-family:"Fraunces",serif}
+    .mono{font-family:"IBM Plex Mono",monospace}
+    .hidden{display:none!important}
+    .muted{color:var(--muted)}
 
-  /* ---------- LOGIN ---------- */
-  #login-screen{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-    background:
-      radial-gradient(circle at 20% 20%, rgba(46,64,52,0.05), transparent 40%),
-      radial-gradient(circle at 80% 80%, rgba(156,122,50,0.07), transparent 45%),
-      var(--paper);
-  }
-  .login-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:44px 40px 36px;
-    width:100%;
-    max-width:380px;
-    box-shadow:0 2px 0 var(--line), 0 18px 40px -20px rgba(30,42,34,0.35);
-    text-align:center;
-  }
-  .seal{
-    width:64px;height:64px;
-    margin:0 auto 18px;
-    border-radius:50%;
-    border:2px solid var(--forest);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Fraunces', serif;
-    font-size:26px;
-    font-weight:600;
-    color:var(--forest);
-    position:relative;
-  }
-  .seal::before{
-    content:'';
-    position:absolute;
-    inset:5px;
-    border:1px solid var(--brass);
-    border-radius:50%;
-  }
-  .login-card h1{
-    font-size:24px;
-    margin:0 0 4px;
-    letter-spacing:0.5px;
-  }
-  .login-card .eyebrow{
-    text-transform:uppercase;
-    letter-spacing:2px;
-    font-size:11px;
-    color:var(--slate);
-    margin-bottom:14px;
-  }
-  .login-card p.tag{
-    color:var(--slate);
-    font-size:13.5px;
-    margin:0 0 26px;
-    line-height:1.5;
-  }
-  input[type="password"], input[type="text"], input[type="date"], select, textarea{
-    width:100%;
-    padding:11px 13px;
-    border:1px solid var(--line);
-    border-radius:4px;
-    background:#fff;
-    font-family:'Source Sans 3', sans-serif;
-    font-size:14.5px;
-    color:var(--ink);
-  }
-  input:focus, select:focus, textarea:focus{
-    outline:2px solid var(--brass);
-    outline-offset:1px;
-  }
-  .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    padding:11px 20px;
-    border-radius:4px;
-    border:1px solid var(--forest);
-    background:var(--forest);
-    color:#fff;
-    font-size:14px;
-    font-weight:600;
-    cursor:pointer;
-    font-family:'Source Sans 3', sans-serif;
-    transition:background .15s ease;
-  }
-  .btn:hover{background:var(--forest-dk);}
-  .btn.ghost{
-    background:transparent;
-    color:var(--forest);
-  }
-  .btn.ghost:hover{background:rgba(46,64,52,0.06);}
-  .btn.danger{border-color:var(--danger); background:var(--danger);}
-  .btn.danger:hover{background:#722f27;}
-  .btn.small{padding:7px 13px; font-size:13px;}
-  .login-card form{margin-top:6px; display:flex; flex-direction:column; gap:12px;}
-  .error-msg{color:var(--danger); font-size:13px; margin-top:10px; display:none;}
+    .login-screen{min-height:100vh;display:grid;place-items:center;padding:24px;background:
+      radial-gradient(circle at 20% 20%,rgba(46,64,52,.06),transparent 38%),
+      radial-gradient(circle at 80% 80%,rgba(156,122,50,.08),transparent 42%),var(--paper)}
+    .login-card{width:min(410px,100%);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:42px 38px 34px;box-shadow:var(--shadow);text-align:center}
+    .seal{width:66px;height:66px;margin:0 auto 18px;border:2px solid var(--forest);border-radius:50%;display:grid;place-items:center;color:var(--forest);font:600 27px "Fraunces";position:relative}
+    .seal:after{content:"";position:absolute;inset:5px;border:1px solid var(--brass);border-radius:50%}
+    .eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;color:var(--muted);margin-bottom:12px}
+    .login-card h1{margin:0 0 8px;font-size:28px}
+    .login-card p{margin:0 0 24px;line-height:1.5;color:var(--muted)}
+    .login-card form{display:grid;gap:12px;text-align:left}
+    label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.45px;color:var(--forest);margin-bottom:5px}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);padding:11px 12px}
+    textarea{min-height:105px;resize:vertical}
+    input:focus,select:focus,textarea:focus{outline:2px solid var(--brass);outline-offset:1px}
+    .error{color:var(--danger);font-size:13px;margin-top:3px}
+    .config-warning{background:#fff3dc;border:1px solid #e3c78f;border-radius:5px;padding:12px;text-align:left;color:#6e531d;font-size:13px;line-height:1.45}
 
-  /* ---------- APP SHELL ---------- */
-  #app{display:none; min-height:100vh;}
-  header.top{
-    background:var(--forest);
-    color:#F6F1E6;
-    padding:0 28px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    height:68px;
-    border-bottom:3px solid var(--brass);
-  }
-  header.top .brand{display:flex;align-items:center;gap:12px;}
-  header.top .seal-sm{
-    width:34px;height:34px;border-radius:50%;
-    border:1.5px solid var(--brass-lt, #C9A25C);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Fraunces', serif; font-weight:600; font-size:15px;
-  }
-  header.top h2{font-size:18px; margin:0; letter-spacing:.3px; font-weight:600;}
-  header.top .sub{font-size:11px; opacity:.75; margin-top:1px;}
-  header.top .right{display:flex; align-items:center; gap:14px; font-size:13px;}
+    .btn{border:1px solid var(--forest);border-radius:5px;background:var(--forest);color:#fff;padding:10px 17px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+    .btn:hover{background:var(--forest-dark)}
+    .btn.small{padding:7px 11px;font-size:13px}
+    .btn.ghost{background:transparent;color:var(--forest)}
+    .btn.ghost:hover{background:rgba(46,64,52,.06)}
+    .btn.danger{border-color:var(--danger);background:var(--danger)}
+    .btn.danger:hover{background:#702f28}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
 
-  nav.tabs{
-    display:flex;
-    gap:2px;
-    background:var(--paper-dark);
-    padding:0 28px;
-    border-bottom:1px solid var(--line);
-    overflow-x:auto;
-  }
-  nav.tabs button{
-    background:none;border:none;
-    padding:14px 16px 12px;
-    font-family:'Source Sans 3', sans-serif;
-    font-size:14px; font-weight:600;
-    color:var(--slate);
-    cursor:pointer;
-    border-bottom:3px solid transparent;
-    white-space:nowrap;
-  }
-  nav.tabs button.active{
-    color:var(--forest);
-    border-bottom-color:var(--brass);
-  }
+    .app{min-height:100vh}
+    .topbar{height:70px;background:var(--forest);color:var(--paper);border-bottom:3px solid var(--brass);padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .seal-small{width:36px;height:36px;border:1.5px solid #c9a25c;border-radius:50%;display:grid;place-items:center;font:600 16px "Fraunces"}
+    .brand strong{display:block;font-family:"Fraunces";font-size:18px}
+    .brand small{opacity:.75}
+    .user-menu{display:flex;align-items:center;gap:12px;font-size:13px}
+    .user-role{display:inline-block;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 8px;margin-left:6px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+    .topbar .btn.ghost{color:var(--paper);border-color:rgba(255,255,255,.48)}
 
-  main{padding:26px 28px 60px; max-width:1180px; margin:0 auto;}
-  .view{display:none;}
-  .view.active{display:block;}
+    .tabs{display:flex;gap:2px;overflow-x:auto;background:var(--paper-dark);border-bottom:1px solid var(--line);padding:0 28px}
+    .tabs button{border:0;border-bottom:3px solid transparent;background:transparent;color:var(--muted);padding:14px 15px 12px;white-space:nowrap;font-weight:700}
+    .tabs button.active{color:var(--forest);border-bottom-color:var(--brass)}
+    main{max-width:1200px;margin:0 auto;padding:27px 28px 64px}
+    .view{display:none}.view.active{display:block}
+    .view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+    .view-head h1{font:600 28px "Fraunces";margin:0 0 3px}.view-head p{margin:0;color:var(--muted)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
 
-  .panel-head{
-    display:flex; align-items:flex-end; justify-content:space-between;
-    gap:16px; margin-bottom:18px; flex-wrap:wrap;
-  }
-  .panel-head h1{font-size:26px; margin:0 0 4px;}
-  .panel-head .desc{color:var(--slate); font-size:13.5px; margin:0;}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:13px;margin-bottom:25px}
+    .stat{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--forest);border-radius:6px;padding:16px 17px}
+    .stat.warning{border-left-color:var(--amber)}.stat.danger{border-left-color:var(--danger)}.stat.success{border-left-color:var(--sage)}
+    .stat b{font:600 31px "Fraunces";display:block;line-height:1}.stat span{display:block;margin-top:6px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
 
-  /* dashboard stat cards */
-  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:14px; margin-bottom:28px;}
-  .stat-card{
-    background:var(--card); border:1px solid var(--line); border-radius:6px;
-    padding:16px 18px; border-left:4px solid var(--forest);
-  }
-  .stat-card .num{font-family:'Fraunces',serif; font-size:30px; font-weight:600; line-height:1;}
-  .stat-card .lbl{font-size:12px; color:var(--slate); margin-top:6px; text-transform:uppercase; letter-spacing:.5px;}
-  .stat-card.critico{border-left-color:var(--danger);}
-  .stat-card.alerta{border-left-color:var(--amber);}
-  .stat-card.ok{border-left-color:var(--sage);}
+    .dashboard-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:18px}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:7px;padding:18px;box-shadow:var(--shadow)}
+    .panel h2{font:600 19px "Fraunces";margin:0 0 14px}
 
-  /* filters */
-  .filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; align-items:center;}
-  .chip{
-    padding:6px 13px; border-radius:20px; border:1px solid var(--line);
-    background:#fff; font-size:12.5px; cursor:pointer; color:var(--ink);
-  }
-  .chip.active{background:var(--forest); color:#fff; border-color:var(--forest);}
-  .filters select, .filters input[type=text]{width:auto; min-width:160px;}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+    .filters input{width:min(280px,100%)}.filters select{width:auto;min-width:155px}
+    .chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:6px 12px;color:var(--ink);font-size:13px}
+    .chip.active{background:var(--forest);border-color:var(--forest);color:#fff}
 
-  /* case cards (fichas) */
-  .cases{display:flex; flex-direction:column; gap:12px;}
-  .ficha{
-    background:var(--card); border:1px solid var(--line); border-radius:5px;
-    padding:16px 18px; display:flex; gap:16px; align-items:flex-start;
-    border-left:5px solid var(--slate);
-    cursor:pointer;
-  }
-  .ficha:hover{box-shadow:0 4px 14px -8px rgba(30,42,34,0.4);}
-  .ficha.risco-critico, .ficha.risco-muito-alta{border-left-color:var(--danger);}
-  .ficha.risco-alta{border-left-color:var(--amber);}
-  .ficha.risco-media{border-left-color:var(--sage);}
-  .ficha.risco-baixa{border-left-color:var(--slate);}
-  .ficha .idnum{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--slate); width:34px; flex-shrink:0; padding-top:2px;}
-  .ficha .body{flex:1; min-width:0;}
-  .ficha .body h3{margin:0 0 4px; font-size:16px; font-family:'Fraunces',serif; font-weight:600;}
-  .ficha .body .cat{font-size:11.5px; color:var(--brass); text-transform:uppercase; letter-spacing:.5px; font-weight:600;}
-  .ficha .body .obs{font-size:13px; color:var(--slate); margin-top:6px; line-height:1.4;}
-  .ficha .meta{display:flex; gap:14px; margin-top:8px; font-size:12px; color:var(--slate); flex-wrap:wrap;}
-  .stamp{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:10.5px; font-weight:600; letter-spacing:1px;
-    text-transform:uppercase;
-    border:1.5px solid; border-radius:3px;
-    padding:4px 9px;
-    transform:rotate(-2deg);
-    white-space:nowrap;
-    flex-shrink:0;
-  }
-  .stamp.s-nao-iniciado{color:var(--slate); border-color:var(--slate);}
-  .stamp.s-em-andamento{color:var(--amber); border-color:var(--amber);}
-  .stamp.s-aguardando{color:#7a6a9c; border-color:#7a6a9c;}
-  .stamp.s-pendente{color:var(--danger); border-color:var(--danger);}
-  .stamp.s-concluido{color:var(--sage); border-color:var(--sage);}
-  .stamp.s-cancelado{color:#9a9a9a; border-color:#9a9a9a; text-decoration:line-through;}
+    .list{display:grid;gap:11px}
+    .case-card,.property-card,.report-card,.document-row,.team-card{background:var(--card);border:1px solid var(--line);border-radius:6px}
+    .case-card{padding:15px 17px;border-left:5px solid var(--muted);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px}
+    .case-card.priority-critico{border-left-color:var(--danger)}.case-card.priority-alta{border-left-color:var(--amber)}.case-card.priority-media{border-left-color:var(--sage)}
+    .case-card h3,.property-card h3,.report-card h3{margin:0;font:600 17px "Fraunces"}
+    .kicker{font-size:11px;text-transform:uppercase;letter-spacing:.55px;color:var(--brass);font-weight:700;margin-bottom:3px}
+    .description{color:var(--muted);margin:6px 0 0;line-height:1.45}
+    .meta{display:flex;gap:13px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin-top:9px}
+    .status{align-self:start;border:1.5px solid currentColor;border-radius:4px;padding:4px 8px;font:500 10.5px "IBM Plex Mono";text-transform:uppercase;letter-spacing:.75px;white-space:nowrap;transform:rotate(-1deg);color:var(--muted)}
+    .status.em-andamento{color:var(--amber)}.status.aguardando-terceiros{color:var(--purple)}.status.pendente{color:var(--danger)}.status.concluido{color:var(--sage)}.status.cancelado{text-decoration:line-through;color:#999}
+    .card-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
 
-  .empty{
-    text-align:center; padding:60px 20px; color:var(--slate);
-  }
-  .empty .big{font-size:38px; margin-bottom:10px;}
+    .report-card{padding:18px}
+    .report-top{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:start}
+    .date-box{width:63px;border:1px solid var(--line);border-radius:5px;text-align:center;overflow:hidden;background:#fff}
+    .date-box b{display:block;background:var(--forest);color:#fff;padding:4px;font-size:12px;text-transform:uppercase}.date-box span{font:600 25px "Fraunces";display:block;padding:5px 0 1px}.date-box small{display:block;padding-bottom:6px;color:var(--muted)}
+    .report-note{white-space:pre-wrap;line-height:1.55;margin-top:10px}
+    .comments{border-top:1px solid var(--line);margin-top:15px;padding-top:13px}
+    .comment{padding:9px 11px;background:#fff;border:1px solid var(--line);border-radius:5px;margin-bottom:7px}
+    .comment-head{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:10px}.comment p{margin:4px 0 0;white-space:pre-wrap}
+    .comment-form{display:flex;gap:7px;margin-top:10px}.comment-form input{flex:1}.comment-form .btn{flex:0 0 auto}
 
-  /* modal */
-  .overlay{
-    display:none; position:fixed; inset:0; background:rgba(20,26,20,0.55);
-    align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto; z-index:50;
-  }
-  .overlay.active{display:flex;}
-  .modal{
-    background:var(--card); border-radius:6px; width:100%; max-width:560px;
-    padding:28px 28px 24px; border:1px solid var(--line);
-  }
-  .modal h2{margin:0 0 18px; font-size:20px;}
-  .field{margin-bottom:14px;}
-  .field label{display:block; font-size:12.5px; font-weight:600; color:var(--forest); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px;}
-  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  .modal-actions{display:flex; justify-content:space-between; margin-top:22px; gap:10px;}
-  textarea{min-height:70px; resize:vertical; font-family:'Source Sans 3',sans-serif;}
+    .properties-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:14px}
+    .property-card{border-top:4px solid var(--forest);padding:17px}
+    .property-card .status{display:inline-block;margin-top:12px}
 
-  /* imoveis */
-  .imoveis-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
-  .im-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid var(--forest);}
-  .im-card h3{margin:0 0 6px; font-family:'Fraunces',serif; font-size:17px;}
-  .im-card .status-line{margin-top:10px;}
+    .documents{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:7px}
+    table{border-collapse:collapse;width:100%;min-width:760px}
+    th{text-align:left;background:var(--paper-dark);color:var(--muted);padding:11px 13px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line)}
+    td{padding:12px 13px;border-bottom:1px solid var(--line);vertical-align:middle}tr:last-child td{border-bottom:0}
+    .file-name{font-weight:700}.file-meta{font-size:12px;color:var(--muted)}
 
-  /* documentos */
-  .doc-table{width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:6px; overflow:hidden;}
-  .doc-table th{
-    text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.5px;
-    color:var(--slate); padding:12px 14px; background:var(--paper-dark); border-bottom:1px solid var(--line);
-  }
-  .doc-table td{padding:12px 14px; font-size:13.5px; border-bottom:1px solid var(--line); vertical-align:middle;}
-  .doc-table tr:last-child td{border-bottom:none;}
-  .doc-table .doc-name{font-weight:600;}
-  .yn{font-size:12px; font-weight:600; padding:3px 9px; border-radius:10px;}
-  .yn.sim{background:#E4EEE6; color:var(--sage);}
-  .yn.nao{background:#F3E6E4; color:var(--danger);}
-  .file-badge{font-size:12px; color:var(--slate); font-family:'IBM Plex Mono',monospace;}
+    .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
+    .team-card{padding:16px}.team-card strong{display:block;font-family:"Fraunces";font-size:17px}.team-card small{color:var(--muted)}
+    .role-badge{display:inline-block;margin-top:10px;border-radius:20px;padding:4px 9px;background:var(--paper-dark);font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+    .role-badge.admin{background:#e7dfc8;color:#6e531d}.role-badge.collaborator{background:#ece7f3;color:#604f7d}
 
-  select, input, textarea { color: var(--ink); }
-  ::placeholder{color:#a8a290;}
+    .empty{text-align:center;padding:42px 18px;color:var(--muted);border:1px dashed var(--line);border-radius:7px;background:rgba(255,255,255,.35)}
+    .loading{text-align:center;padding:35px;color:var(--muted)}
 
-  .toast{
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background:var(--forest); color:#fff; padding:11px 20px; border-radius:5px;
-    font-size:13.5px; display:none; z-index:100; box-shadow:0 8px 24px -8px rgba(0,0,0,0.4);
-  }
+    .overlay{position:fixed;inset:0;display:none;align-items:flex-start;justify-content:center;background:rgba(20,26,20,.58);padding:36px 15px;overflow-y:auto;z-index:30}
+    .overlay.active{display:flex}
+    .modal{width:min(590px,100%);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:25px;box-shadow:0 26px 70px -30px #000}
+    .modal h2{font:600 21px "Fraunces";margin:0 0 18px}.field{margin-bottom:13px}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
 
-  @media (max-width:640px){
-    header.top{padding:0 16px;}
-    main{padding:18px 16px 50px;}
-    .field-row{grid-template-columns:1fr;}
-    .ficha{flex-wrap:wrap;}
-  }
-</style>
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--forest);color:#fff;border-radius:5px;padding:11px 17px;box-shadow:0 10px 30px -12px #000;z-index:50;display:none;max-width:min(540px,90vw);text-align:center}
+    .toast.error-toast{background:var(--danger)}
+
+    @media(max-width:820px){.dashboard-grid{grid-template-columns:1fr}.report-top{grid-template-columns:auto minmax(0,1fr)}.report-top>.card-actions{grid-column:1/-1}.topbar{padding:0 16px}.tabs{padding:0 10px}main{padding:20px 15px 55px}}
+    @media(max-width:560px){.login-card{padding:34px 22px}.user-menu .identity{display:none}.case-card{grid-template-columns:1fr}.status{justify-self:start}.field-row{grid-template-columns:1fr}.comment-form{display:grid}.report-top{grid-template-columns:1fr}.date-box{width:100%;display:flex;align-items:center}.date-box b,.date-box span,.date-box small{display:inline-block;padding:7px}.date-box span{font-size:20px}}
+  </style>
 </head>
 <body>
-
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="seal serif">L</div>
-    <div class="eyebrow">Acesso restrito à família</div>
-    <h1 class="serif">Portal Laus</h1>
-    <p class="tag">Painel de acompanhamento patrimonial. Insira o código de acesso da família para continuar.</p>
-    <form id="login-form">
-      <input type="password" id="pin-input" placeholder="Código de acesso" autocomplete="off">
-      <input type="text" id="name-input" placeholder="Seu nome (para identificar atualizações)">
-      <button type="submit" class="btn">Entrar</button>
-      <div class="error-msg" id="login-error">Código incorreto. Tente novamente.</div>
-    </form>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app">
-  <header class="top">
-    <div class="brand">
-      <div class="seal-sm serif">L</div>
-      <div>
-        <h2>Portal Laus</h2>
-        <div class="sub">Gestão Patrimonial Familiar</div>
-      </div>
-    </div>
-    <div class="right">
-      <span id="user-badge"></span>
-      <button class="btn ghost small" id="logout-btn">Sair</button>
-    </div>
-  </header>
-
-  <nav class="tabs">
-    <button data-view="painel" class="active">Painel Geral</button>
-    <button data-view="casos">Casos</button>
-    <button data-view="imoveis">Imóveis</button>
-    <button data-view="documentos">Documentos</button>
-  </nav>
-
-  <main>
-
-    <!-- PAINEL -->
-    <section class="view active" id="view-painel">
-      <div class="panel-head">
+  <section id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="seal">L</div>
+      <div class="eyebrow">Acesso restrito</div>
+      <h1 class="serif">Portal Laus</h1>
+      <p>Cada membro entra com sua própria conta. Não existe cadastro público.</p>
+      <div id="config-warning" class="config-warning hidden"></div>
+      <form id="login-form">
         <div>
-          <h1 class="serif">Visão Geral</h1>
-          <p class="desc">Resumo de todos os temas em acompanhamento pela família.</p>
+          <label for="login-email">E-mail</label>
+          <input id="login-email" type="email" autocomplete="username" required>
         </div>
-      </div>
-      <div class="stat-grid" id="stat-grid"></div>
-
-      <div class="panel-head">
-        <div><h1 class="serif" style="font-size:19px;">Prioridades críticas</h1></div>
-      </div>
-      <div class="cases" id="criticos-list"></div>
-    </section>
-
-    <!-- CASOS -->
-    <section class="view" id="view-casos">
-      <div class="panel-head">
         <div>
-          <h1 class="serif">Casos</h1>
-          <p class="desc">Temas patrimoniais, financeiros, contratuais e jurídicos em acompanhamento.</p>
+          <label for="login-password">Senha</label>
+          <input id="login-password" type="password" autocomplete="current-password" required>
         </div>
-        <button class="btn" id="add-caso-btn">+ Novo caso</button>
-      </div>
-      <div class="filters">
-        <div class="chip active" data-filter="todos">Todos</div>
-        <div class="chip" data-filter="abertos">Em aberto</div>
-        <div class="chip" data-filter="concluido">Concluídos</div>
-        <div class="chip" data-filter="cancelado">Cancelados</div>
-        <select id="cat-filter">
-          <option value="">Todas as categorias</option>
-        </select>
-        <input type="text" id="search-casos" placeholder="Buscar por tema...">
-      </div>
-      <div class="cases" id="casos-list"></div>
-    </section>
-
-    <!-- IMOVEIS -->
-    <section class="view" id="view-imoveis">
-      <div class="panel-head">
-        <div>
-          <h1 class="serif">Imóveis</h1>
-          <p class="desc">Situação de ocupação, contratos e manutenção de cada bem.</p>
-        </div>
-        <button class="btn" id="add-imovel-btn">+ Novo imóvel</button>
-      </div>
-      <div class="imoveis-grid" id="imoveis-grid"></div>
-    </section>
-
-    <!-- DOCUMENTOS -->
-    <section class="view" id="view-documentos">
-      <div class="panel-head">
-        <div>
-          <h1 class="serif">Documentos</h1>
-          <p class="desc">Envie e acompanhe os documentos necessários para cada item do painel.</p>
-        </div>
-        <button class="btn" id="add-doc-btn">+ Novo documento</button>
-      </div>
-      <table class="doc-table">
-        <thead>
-          <tr>
-            <th>Documento</th>
-            <th>Tipo</th>
-            <th>Recebido?</th>
-            <th>Arquivo</th>
-            <th>Responsável</th>
-            <th style="text-align:right;">Ações</th>
-          </tr>
-        </thead>
-        <tbody id="doc-table-body"></tbody>
-      </table>
-    </section>
-
-  </main>
-</div>
-
-<!-- MODAL: caso -->
-<div class="overlay" id="caso-overlay">
-  <div class="modal">
-    <h2 class="serif" id="caso-modal-title">Novo caso</h2>
-    <form id="caso-form">
-      <input type="hidden" id="caso-id">
-      <div class="field">
-        <label>Tema</label>
-        <input type="text" id="caso-tema" required placeholder="Ex: Contrato de locação Bella Sintra">
-      </div>
-      <div class="field">
-        <label>Categoria</label>
-        <select id="caso-categoria">
-          <option>Financeiro</option>
-          <option>Imóveis</option>
-          <option>Contratos</option>
-          <option>Documentos</option>
-          <option>Processos</option>
-          <option>Administrativo</option>
-          <option>Societário</option>
-          <option>Propostas</option>
-          <option>Outro</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Descrição / escopo</label>
-        <textarea id="caso-desc" placeholder="O que precisa ser resolvido ou acompanhado"></textarea>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Prioridade / risco</label>
-          <select id="caso-risco">
-            <option>Crítico</option>
-            <option>Alta</option>
-            <option>Média</option>
-            <option>Baixa</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Status</label>
-          <select id="caso-status">
-            <option>Não iniciado</option>
-            <option>Em andamento</option>
-            <option>Aguardando terceiros</option>
-            <option>Pendente</option>
-            <option>Concluído</option>
-            <option>Cancelado</option>
-          </select>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Responsável</label>
-          <input type="text" id="caso-responsavel" placeholder="Nome">
-        </div>
-        <div class="field">
-          <label>Prazo</label>
-          <input type="date" id="caso-prazo">
-        </div>
-      </div>
-      <div class="field">
-        <label>Observações</label>
-        <textarea id="caso-obs" placeholder="Atualizações, decisões, próximos passos"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn danger small" id="delete-caso-btn" style="display:none;">Excluir</button>
-        <div style="display:flex; gap:10px; margin-left:auto;">
-          <button type="button" class="btn ghost small" id="cancel-caso-btn">Cancelar</button>
-          <button type="submit" class="btn small">Salvar</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- MODAL: imovel -->
-<div class="overlay" id="imovel-overlay">
-  <div class="modal">
-    <h2 class="serif" id="imovel-modal-title">Novo imóvel</h2>
-    <form id="imovel-form">
-      <input type="hidden" id="imovel-id">
-      <div class="field">
-        <label>Nome do imóvel</label>
-        <input type="text" id="imovel-nome" required placeholder="Ex: Casa Rio Branco">
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Situação / ocupação</label>
-          <input type="text" id="imovel-situacao" placeholder="Ex: Alugado, vago, em reforma">
-        </div>
-        <div class="field">
-          <label>Status</label>
-          <select id="imovel-status">
-            <option>Não iniciado</option>
-            <option>Em andamento</option>
-            <option>Aguardando terceiros</option>
-            <option>Pendente</option>
-            <option>Concluído</option>
-            <option>Cancelado</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>Responsável</label>
-        <input type="text" id="imovel-responsavel">
-      </div>
-      <div class="field">
-        <label>Observações</label>
-        <textarea id="imovel-obs" placeholder="Manutenção, vistorias, seguros, contratos"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn danger small" id="delete-imovel-btn" style="display:none;">Excluir</button>
-        <div style="display:flex; gap:10px; margin-left:auto;">
-          <button type="button" class="btn ghost small" id="cancel-imovel-btn">Cancelar</button>
-          <button type="submit" class="btn small">Salvar</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- MODAL: documento -->
-<div class="overlay" id="doc-overlay">
-  <div class="modal">
-    <h2 class="serif" id="doc-modal-title">Novo documento</h2>
-    <form id="doc-form">
-      <input type="hidden" id="doc-id">
-      <div class="field">
-        <label>Nome do documento</label>
-        <input type="text" id="doc-nome" required placeholder="Ex: Escritura Casa Rio Branco">
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label>Tipo</label>
-          <select id="doc-tipo">
-            <option>Financeiro</option>
-            <option>Contrato</option>
-            <option>Imóvel</option>
-            <option>Societário</option>
-            <option>Proposta</option>
-            <option>Administrativo</option>
-            <option>Judicial</option>
-            <option>Outro</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Recebido?</label>
-          <select id="doc-recebido">
-            <option value="Não">Não</option>
-            <option value="Sim">Sim</option>
-          </select>
-        </div>
-      </div>
-      <div class="field">
-        <label>Responsável</label>
-        <input type="text" id="doc-responsavel">
-      </div>
-      <div class="field">
-        <label>Arquivo (opcional, até ~3 MB)</label>
-        <input type="file" id="doc-file-input">
-        <div class="file-badge" id="doc-current-file" style="margin-top:6px;"></div>
-      </div>
-      <div class="field">
-        <label>Observações / pendência</label>
-        <textarea id="doc-obs"></textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn danger small" id="delete-doc-btn" style="display:none;">Excluir</button>
-        <div style="display:flex; gap:10px; margin-left:auto;">
-          <button type="button" class="btn ghost small" id="cancel-doc-btn">Cancelar</button>
-          <button type="submit" class="btn small">Salvar</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ================= CONFIG ================= */
-const FAMILY_PIN = "LAUS2026"; // Marco: altere este código conforme desejar antes de compartilhar com a família
-let currentUser = "Família";
-
-/* ================= STORAGE HELPERS ================= */
-async function storeGet(key, fallback){
-  try{
-    const r = await window.storage.get(key, true);
-    return r ? JSON.parse(r.value) : fallback;
-  }catch(e){ return fallback; }
-}
-async function storeSet(key, value){
-  try{
-    await window.storage.set(key, JSON.stringify(value), true);
-  }catch(e){ console.error('storage set failed', key, e); }
-}
-async function storeDelete(key){
-  try{ await window.storage.delete(key, true); }catch(e){}
-}
-
-/* ================= SEED DATA ================= */
-const SEED_CASOS = [
-  {id:1, tema:"Relatório de receitas e despesas", categoria:"Financeiro", descricao:"Relatório financeiro com receitas, despesas e periodicidade", risco:"Crítico", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:2, tema:"Contratos de locação", categoria:"Contratos", descricao:"Relação de contratos, valores, conta bancária, garantias e histórico de renovações", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:3, tema:"Escrituras e contratos", categoria:"Documentos", descricao:"Escrituras e contratos de compra e venda dos bens", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:4, tema:"Situação financeira", categoria:"Financeiro", descricao:"Contas bancárias, aplicações, reservas, dívidas, aluguéis, condomínios, IR, IPTU, ITCMD, GCAP, multas e exigências", risco:"Crítico", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:5, tema:"Situação dos imóveis", categoria:"Imóveis", descricao:"Ocupação, consertos, calçadas, cercas, portões, seguros, limpeza, manutenção e vistorias", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:6, tema:"Laus Imóveis", categoria:"Societário", descricao:"Contrato social, sócios, receita, despesa e distribuição de lucros/dividendos", risco:"Média", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:7, tema:"Propostas em andamento", categoria:"Propostas", descricao:"Supermercado Meschke, Construtora Haacke, Casa Rio Branco e limpeza/roçada Chácara", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:8, tema:"Distrato e desocupações", categoria:"Contratos", descricao:"Distrato estacionamento e desocupação 101 e 201 Bella Sintra", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:9, tema:"Passivo administrativo", categoria:"Administrativo", descricao:"Autos de Infração 2025 – Sacolão e Chácara", risco:"Crítico", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:10, tema:"Passivo judicial — visão geral", categoria:"Processos", descricao:"Herdeiros Tiago Aguiar, Gilberto, Fernando Marcondes de Mattos, Unimed, TZT, rescisão João e Cumprimento de Sentença 5000222-05.2012.8.24.0005", risco:"Crítico", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:11, tema:"Herdeiros Tiago Aguiar", categoria:"Processos", descricao:"Loteamento Jardim Mariluz", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:12, tema:"Gilberto — usucapião", categoria:"Processos", descricao:"Usucapião sobreposto açude/rancho chácara e casa João", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:13, tema:"Fernando Marcondes de Mattos", categoria:"Processos", descricao:"Fiador / aluguéis devidos por antiga locatária Casa Rio Branco", risco:"Média", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:14, tema:"Unimed", categoria:"Processos", descricao:"Condenação por danos morais pela não assistência médica contratada por Wanda", risco:"Média", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:15, tema:"TZT — outorga de escrituras", categoria:"Processos", descricao:"Outorga escrituras Bella Sintra", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:16, tema:"Rescisão contrato de trabalho — João", categoria:"Processos", descricao:"Rescisão de contrato de trabalho (caseiro)", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:17, tema:"Cumprimento de Sentença 5000222-05.2012.8.24.0005", categoria:"Processos", descricao:"Perícia demarcatória lotes 3, 4, 5 da quadra E – Jardim dos Estados", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:18, tema:"Auto de Infração 2025 — Sacolão", categoria:"Administrativo", descricao:"Auto de infração 2025", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:19, tema:"Auto de Infração 2025 — Chácara", categoria:"Administrativo", descricao:"Auto de infração 2025", risco:"Alta", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:20, tema:"Proposta — Supermercado Meschke", categoria:"Propostas", descricao:"Proposta recebida do Supermercado Meschke", risco:"Média", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:21, tema:"Proposta — Construtora Haacke", categoria:"Propostas", descricao:"Proposta recebida da Construtora Haacke", risco:"Média", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:22, tema:"Proposta — Casa Rio Branco", categoria:"Propostas", descricao:"Proposta relativa à Casa Rio Branco", risco:"Média", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-  {id:23, tema:"Limpeza / roçada da Chácara", categoria:"Propostas", descricao:"Proposta de limpeza e roçada da Chácara", risco:"Baixa", status:"Não iniciado", responsavel:"", prazo:"", obs:""},
-];
-
-const SEED_IMOVEIS = [
-  {id:1, nome:"Sacolão", situacao:"", status:"Não iniciado", responsavel:"", obs:""},
-  {id:2, nome:"Chácara", situacao:"", status:"Não iniciado", responsavel:"", obs:""},
-  {id:3, nome:"Casa Rio Branco", situacao:"", status:"Não iniciado", responsavel:"", obs:""},
-  {id:4, nome:"Bella Sintra 101", situacao:"", status:"Não iniciado", responsavel:"", obs:""},
-  {id:5, nome:"Bella Sintra 201", situacao:"", status:"Não iniciado", responsavel:"", obs:""},
-];
-
-const SEED_DOCS = [
-  {id:1, nome:"Relatório de receitas e despesas", tipo:"Financeiro", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:2, nome:"Contrato de locação / uso dos bens", tipo:"Contrato", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:3, nome:"Escritura ou contrato de compra e venda", tipo:"Imóvel", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:4, nome:"Extratos bancários / aplicações / dívidas", tipo:"Financeiro", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:5, nome:"Vistorias, seguros, manutenção e limpeza", tipo:"Imóvel", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:6, nome:"Contrato social Laus Imóveis", tipo:"Societário", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:7, nome:"Propostas Meschke, Haacke, Casa Rio Branco e Chácara", tipo:"Proposta", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:8, nome:"Distrato estacionamento e desocupação 101/201 Bella Sintra", tipo:"Contrato", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:9, nome:"Autos de Infração 2025 – Sacolão e Chácara", tipo:"Administrativo", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-  {id:10, nome:"Peças, andamentos e decisões dos processos judiciais", tipo:"Judicial", recebido:"Não", responsavel:"", obs:"", hasFile:false, fileName:"", fileMime:""},
-];
-
-/* ================= STATE ================= */
-let casos = [];
-let imoveis = [];
-let docs = [];
-let activeFilter = 'todos';
-let activeCat = '';
-let searchTerm = '';
-
-/* ================= UTIL ================= */
-function slug(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  setTimeout(()=>{ t.style.display='none'; }, 2400);
-}
-function fmtDate(d){
-  if(!d) return '—';
-  const parts = d.split('-');
-  if(parts.length===3) return parts[2]+'/'+parts[1]+'/'+parts[0];
-  return d;
-}
-function nextId(arr){
-  return arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1;
-}
-
-/* ================= LOAD / INIT DATA ================= */
-async function loadData(){
-  casos = await storeGet('casos', null);
-  if(casos === null){ casos = SEED_CASOS; await storeSet('casos', casos); }
-
-  imoveis = await storeGet('imoveis', null);
-  if(imoveis === null){ imoveis = SEED_IMOVEIS; await storeSet('imoveis', imoveis); }
-
-  docs = await storeGet('documentos_meta', null);
-  if(docs === null){ docs = SEED_DOCS; await storeSet('documentos_meta', docs); }
-}
-
-/* ================= RENDER: PAINEL ================= */
-function renderPainel(){
-  const total = casos.length;
-  const concluidos = casos.filter(c=>c.status==='Concluído').length;
-  const emAndamento = casos.filter(c=>c.status==='Em andamento').length;
-  const abertos = casos.filter(c=>!['Concluído','Cancelado'].includes(c.status)).length;
-  const criticos = casos.filter(c=> (c.risco==='Crítico') && !['Concluído','Cancelado'].includes(c.status));
-
-  document.getElementById('stat-grid').innerHTML = `
-    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total de casos</div></div>
-    <div class="stat-card alerta"><div class="num">${abertos}</div><div class="lbl">Em aberto</div></div>
-    <div class="stat-card ok"><div class="num">${emAndamento}</div><div class="lbl">Em andamento</div></div>
-    <div class="stat-card critico"><div class="num">${criticos.length}</div><div class="lbl">Prioridade crítica</div></div>
-    <div class="stat-card ok"><div class="num">${concluidos}</div><div class="lbl">Concluídos</div></div>
-  `;
-
-  const listEl = document.getElementById('criticos-list');
-  if(criticos.length===0){
-    listEl.innerHTML = `<div class="empty"><div class="big">✓</div>Nenhum caso crítico em aberto no momento.</div>`;
-  } else {
-    listEl.innerHTML = criticos.map(fichaHTML).join('');
-  }
-  attachFichaHandlers(listEl);
-}
-
-/* ================= RENDER: CASOS ================= */
-function riscoClass(risco){
-  return 'risco-' + slug(risco === 'Crítico' ? 'critico' : risco);
-}
-function statusClass(status){
-  const map = {
-    'Não iniciado':'s-nao-iniciado',
-    'Em andamento':'s-em-andamento',
-    'Aguardando terceiros':'s-aguardando',
-    'Pendente':'s-pendente',
-    'Concluído':'s-concluido',
-    'Cancelado':'s-cancelado'
-  };
-  return map[status] || 's-nao-iniciado';
-}
-function fichaHTML(c){
-  return `
-  <div class="ficha ${riscoClass(c.risco)}" data-id="${c.id}">
-    <div class="idnum mono">#${String(c.id).padStart(2,'0')}</div>
-    <div class="body">
-      <div class="cat">${c.categoria}</div>
-      <h3>${c.tema}</h3>
-      ${c.descricao ? `<div class="obs">${c.descricao}</div>` : ''}
-      <div class="meta">
-        <span>Risco: <strong>${c.risco}</strong></span>
-        ${c.responsavel ? `<span>Responsável: <strong>${c.responsavel}</strong></span>` : ''}
-        ${c.prazo ? `<span>Prazo: <strong>${fmtDate(c.prazo)}</strong></span>` : ''}
-      </div>
-      ${c.obs ? `<div class="obs" style="margin-top:8px; font-style:italic;">"${c.obs}"</div>` : ''}
+        <button class="btn" type="submit">Entrar</button>
+        <div id="login-error" class="error hidden" role="alert"></div>
+      </form>
     </div>
-    <div class="stamp ${statusClass(c.status)}">${c.status}</div>
-  </div>`;
-}
-function attachFichaHandlers(container){
-  container.querySelectorAll('.ficha').forEach(el=>{
-    el.addEventListener('click', ()=> openCasoModal(parseInt(el.dataset.id)));
-  });
-}
-function renderCasos(){
-  // populate category filter
-  const catSel = document.getElementById('cat-filter');
-  const cats = [...new Set(casos.map(c=>c.categoria))].sort();
-  catSel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-  catSel.value = activeCat;
+  </section>
 
-  let filtered = casos.slice();
-  if(activeFilter==='abertos') filtered = filtered.filter(c=>!['Concluído','Cancelado'].includes(c.status));
-  if(activeFilter==='concluido') filtered = filtered.filter(c=>c.status==='Concluído');
-  if(activeFilter==='cancelado') filtered = filtered.filter(c=>c.status==='Cancelado');
-  if(activeCat) filtered = filtered.filter(c=>c.categoria===activeCat);
-  if(searchTerm) filtered = filtered.filter(c=> (c.tema+c.descricao).toLowerCase().includes(searchTerm.toLowerCase()));
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="seal-small">L</div>
+        <div><strong>Portal Laus</strong><small>Gestão Patrimonial Familiar</small></div>
+      </div>
+      <div class="user-menu">
+        <span class="identity"><span id="user-name"></span><span id="user-role" class="user-role"></span></span>
+        <button id="logout-btn" class="btn ghost small" type="button">Sair</button>
+      </div>
+    </header>
 
-  // sort: risk severity then id
-  const order = {'Crítico':0,'Alta':1,'Média':2,'Baixa':3};
-  filtered.sort((a,b)=> (order[a.risco]??9) - (order[b.risco]??9) || a.id-b.id);
+    <nav class="tabs" aria-label="Navegação principal">
+      <button class="active" data-view="dashboard" type="button">Painel</button>
+      <button data-view="cases" type="button">Casos</button>
+      <button data-view="reports" type="button">Relatórios</button>
+      <button data-view="properties" type="button">Imóveis</button>
+      <button data-view="documents" type="button">Documentos</button>
+      <button data-view="team" type="button">Equipe</button>
+    </nav>
 
-  const listEl = document.getElementById('casos-list');
-  if(filtered.length===0){
-    listEl.innerHTML = `<div class="empty"><div class="big">—</div>Nenhum caso encontrado com esses filtros.</div>`;
-  } else {
-    listEl.innerHTML = filtered.map(fichaHTML).join('');
-  }
-  attachFichaHandlers(listEl);
-}
+    <main>
+      <section id="view-dashboard" class="view active">
+        <div class="view-head"><div><h1>Visão geral</h1><p>Resumo dos casos, atualizações e documentos.</p></div><button class="btn" data-action="new-report" type="button">+ Nova atualização</button></div>
+        <div id="stats" class="stats"></div>
+        <div class="dashboard-grid">
+          <div class="panel"><h2>Atualizações recentes</h2><div id="dashboard-reports" class="list"></div></div>
+          <div class="panel"><h2>Prioridades em aberto</h2><div id="dashboard-cases" class="list"></div></div>
+        </div>
+      </section>
 
-/* ================= RENDER: IMOVEIS ================= */
-function renderImoveis(){
-  const grid = document.getElementById('imoveis-grid');
-  if(imoveis.length===0){
-    grid.innerHTML = `<div class="empty"><div class="big">—</div>Nenhum imóvel cadastrado.</div>`;
-    return;
-  }
-  grid.innerHTML = imoveis.map(im=>`
-    <div class="im-card" data-id="${im.id}">
-      <h3>${im.nome}</h3>
-      ${im.situacao ? `<div class="obs" style="color:var(--slate); font-size:13px;">${im.situacao}</div>` : ''}
-      ${im.responsavel ? `<div class="obs" style="color:var(--slate); font-size:12.5px; margin-top:4px;">Responsável: ${im.responsavel}</div>` : ''}
-      ${im.obs ? `<div class="obs" style="margin-top:8px; font-size:13px;">${im.obs}</div>` : ''}
-      <div class="status-line"><span class="stamp ${statusClass(im.status)}">${im.status}</span></div>
+      <section id="view-cases" class="view">
+        <div class="view-head"><div><h1>Casos</h1><p>Temas financeiros, jurídicos, contratuais e administrativos.</p></div><button class="btn" data-action="new-case" type="button">+ Novo caso</button></div>
+        <div class="filters">
+          <button class="chip active" data-case-filter="all" type="button">Todos</button>
+          <button class="chip" data-case-filter="open" type="button">Em aberto</button>
+          <button class="chip" data-case-filter="done" type="button">Concluídos</button>
+          <select id="case-category-filter"><option value="">Todas as categorias</option></select>
+          <input id="case-search" type="search" placeholder="Buscar caso...">
+        </div>
+        <div id="cases-list" class="list"></div>
+      </section>
+
+      <section id="view-reports" class="view">
+        <div class="view-head"><div><h1>Relatórios e notas</h1><p>Visão cronológica de tudo o que aconteceu, com data, autor e comentários.</p></div><button class="btn" data-action="new-report" type="button">+ Nova atualização</button></div>
+        <div class="filters">
+          <select id="report-case-filter"><option value="">Todos os casos</option></select>
+          <input id="report-search" type="search" placeholder="Buscar em relatórios...">
+        </div>
+        <div id="reports-list" class="list"></div>
+      </section>
+
+      <section id="view-properties" class="view">
+        <div class="view-head"><div><h1>Imóveis</h1><p>Situação, responsável e observações de cada bem.</p></div><button class="btn" data-action="new-property" type="button">+ Novo imóvel</button></div>
+        <div id="properties-grid" class="properties-grid"></div>
+      </section>
+
+      <section id="view-documents" class="view">
+        <div class="view-head"><div><h1>Documentos</h1><p>Arquivos privados, acessíveis apenas aos membros autorizados.</p></div><button class="btn" data-action="new-document" type="button">+ Enviar documento</button></div>
+        <div class="documents"><table><thead><tr><th>Documento</th><th>Vinculado a</th><th>Enviado por</th><th>Data</th><th>Ações</th></tr></thead><tbody id="documents-body"></tbody></table></div>
+      </section>
+
+      <section id="view-team" class="view">
+        <div class="view-head"><div><h1>Equipe</h1><p>Contas autorizadas no portal. Novas contas só podem ser criadas no Supabase.</p></div></div>
+        <div id="team-grid" class="team-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-overlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h2 id="modal-title">Formulário</h2>
+      <form id="modal-form">
+        <div id="modal-fields"></div>
+        <div class="modal-actions">
+          <button id="modal-cancel" class="btn ghost" type="button">Cancelar</button>
+          <button id="modal-submit" class="btn" type="submit">Salvar</button>
+        </div>
+      </form>
     </div>
-  `).join('');
-  grid.querySelectorAll('.im-card').forEach(el=>{
-    el.addEventListener('click', ()=> openImovelModal(parseInt(el.dataset.id)));
-  });
-}
+  </div>
 
-/* ================= RENDER: DOCUMENTOS ================= */
-function renderDocs(){
-  const body = document.getElementById('doc-table-body');
-  if(docs.length===0){
-    body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:30px;">Nenhum documento cadastrado.</td></tr>`;
-    return;
-  }
-  body.innerHTML = docs.map(d=>`
-    <tr>
-      <td class="doc-name">${d.nome}</td>
-      <td>${d.tipo}</td>
-      <td><span class="yn ${d.recebido==='Sim'?'sim':'nao'}">${d.recebido}</span></td>
-      <td class="file-badge">${d.hasFile ? '📎 '+d.fileName : '— sem arquivo —'}</td>
-      <td>${d.responsavel || '—'}</td>
-      <td style="text-align:right; white-space:nowrap;">
-        ${d.hasFile ? `<button class="btn ghost small" data-download="${d.id}">Baixar</button>` : ''}
-        <button class="btn ghost small" data-edit="${d.id}">Editar</button>
-      </td>
-    </tr>
-  `).join('');
-  body.querySelectorAll('[data-edit]').forEach(btn=>{
-    btn.addEventListener('click', ()=> openDocModal(parseInt(btn.dataset.edit)));
-  });
-  body.querySelectorAll('[data-download]').forEach(btn=>{
-    btn.addEventListener('click', ()=> downloadDoc(parseInt(btn.dataset.download)));
-  });
-}
-
-async function downloadDoc(id){
-  const meta = docs.find(d=>d.id===id);
-  if(!meta || !meta.hasFile) return;
-  const fileData = await storeGet('doc_file_'+id, null);
-  if(!fileData){ toast('Arquivo não encontrado no armazenamento.'); return; }
-  try{
-    const byteChars = atob(fileData);
-    const byteNums = new Array(byteChars.length);
-    for(let i=0;i<byteChars.length;i++){ byteNums[i] = byteChars.charCodeAt(i); }
-    const byteArray = new Uint8Array(byteNums);
-    const blob = new Blob([byteArray], {type: meta.fileMime || 'application/octet-stream'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = meta.fileName || meta.nome;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-  }catch(e){
-    toast('Erro ao baixar o arquivo.');
-  }
-}
-
-/* ================= NAVIGATION ================= */
-function showView(name){
-  document.querySelectorAll('nav.tabs button').forEach(b=> b.classList.toggle('active', b.dataset.view===name));
-  document.querySelectorAll('.view').forEach(v=> v.classList.toggle('active', v.id === 'view-'+name));
-}
-document.querySelectorAll('nav.tabs button').forEach(btn=>{
-  btn.addEventListener('click', ()=> showView(btn.dataset.view));
-});
-
-/* ================= CASO MODAL ================= */
-function openCasoModal(id){
-  const overlay = document.getElementById('caso-overlay');
-  const isNew = id === null || id === undefined;
-  document.getElementById('caso-modal-title').textContent = isNew ? 'Novo caso' : 'Editar caso';
-  document.getElementById('delete-caso-btn').style.display = isNew ? 'none' : 'inline-flex';
-  const c = isNew ? {id:'',tema:'',categoria:'Financeiro',descricao:'',risco:'Alta',status:'Não iniciado',responsavel:'',prazo:'',obs:''} : casos.find(x=>x.id===id);
-  document.getElementById('caso-id').value = c.id;
-  document.getElementById('caso-tema').value = c.tema;
-  document.getElementById('caso-categoria').value = c.categoria;
-  document.getElementById('caso-desc').value = c.descricao;
-  document.getElementById('caso-risco').value = c.risco;
-  document.getElementById('caso-status').value = c.status;
-  document.getElementById('caso-responsavel').value = c.responsavel;
-  document.getElementById('caso-prazo').value = c.prazo;
-  document.getElementById('caso-obs').value = c.obs;
-  overlay.classList.add('active');
-}
-document.getElementById('add-caso-btn').addEventListener('click', ()=> openCasoModal(null));
-document.getElementById('cancel-caso-btn').addEventListener('click', ()=> document.getElementById('caso-overlay').classList.remove('active'));
-document.getElementById('caso-form').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const idVal = document.getElementById('caso-id').value;
-  const data = {
-    tema: document.getElementById('caso-tema').value.trim(),
-    categoria: document.getElementById('caso-categoria').value,
-    descricao: document.getElementById('caso-desc').value.trim(),
-    risco: document.getElementById('caso-risco').value,
-    status: document.getElementById('caso-status').value,
-    responsavel: document.getElementById('caso-responsavel').value.trim(),
-    prazo: document.getElementById('caso-prazo').value,
-    obs: document.getElementById('caso-obs').value.trim(),
-  };
-  if(idVal){
-    const idx = casos.findIndex(x=>x.id===parseInt(idVal));
-    casos[idx] = {...casos[idx], ...data};
-  } else {
-    data.id = nextId(casos);
-    casos.push(data);
-  }
-  await storeSet('casos', casos);
-  document.getElementById('caso-overlay').classList.remove('active');
-  renderPainel(); renderCasos();
-  toast('Caso salvo.');
-});
-document.getElementById('delete-caso-btn').addEventListener('click', async ()=>{
-  const idVal = parseInt(document.getElementById('caso-id').value);
-  if(!confirm('Excluir este caso? Esta ação não pode ser desfeita.')) return;
-  casos = casos.filter(x=>x.id!==idVal);
-  await storeSet('casos', casos);
-  document.getElementById('caso-overlay').classList.remove('active');
-  renderPainel(); renderCasos();
-  toast('Caso excluído.');
-});
-
-/* ================= IMOVEL MODAL ================= */
-function openImovelModal(id){
-  const overlay = document.getElementById('imovel-overlay');
-  const isNew = id === null || id === undefined;
-  document.getElementById('imovel-modal-title').textContent = isNew ? 'Novo imóvel' : 'Editar imóvel';
-  document.getElementById('delete-imovel-btn').style.display = isNew ? 'none' : 'inline-flex';
-  const im = isNew ? {id:'',nome:'',situacao:'',status:'Não iniciado',responsavel:'',obs:''} : imoveis.find(x=>x.id===id);
-  document.getElementById('imovel-id').value = im.id;
-  document.getElementById('imovel-nome').value = im.nome;
-  document.getElementById('imovel-situacao').value = im.situacao;
-  document.getElementById('imovel-status').value = im.status;
-  document.getElementById('imovel-responsavel').value = im.responsavel;
-  document.getElementById('imovel-obs').value = im.obs;
-  overlay.classList.add('active');
-}
-document.getElementById('add-imovel-btn').addEventListener('click', ()=> openImovelModal(null));
-document.getElementById('cancel-imovel-btn').addEventListener('click', ()=> document.getElementById('imovel-overlay').classList.remove('active'));
-document.getElementById('imovel-form').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const idVal = document.getElementById('imovel-id').value;
-  const data = {
-    nome: document.getElementById('imovel-nome').value.trim(),
-    situacao: document.getElementById('imovel-situacao').value.trim(),
-    status: document.getElementById('imovel-status').value,
-    responsavel: document.getElementById('imovel-responsavel').value.trim(),
-    obs: document.getElementById('imovel-obs').value.trim(),
-  };
-  if(idVal){
-    const idx = imoveis.findIndex(x=>x.id===parseInt(idVal));
-    imoveis[idx] = {...imoveis[idx], ...data};
-  } else {
-    data.id = nextId(imoveis);
-    imoveis.push(data);
-  }
-  await storeSet('imoveis', imoveis);
-  document.getElementById('imovel-overlay').classList.remove('active');
-  renderImoveis();
-  toast('Imóvel salvo.');
-});
-document.getElementById('delete-imovel-btn').addEventListener('click', async ()=>{
-  const idVal = parseInt(document.getElementById('imovel-id').value);
-  if(!confirm('Excluir este imóvel?')) return;
-  imoveis = imoveis.filter(x=>x.id!==idVal);
-  await storeSet('imoveis', imoveis);
-  document.getElementById('imovel-overlay').classList.remove('active');
-  renderImoveis();
-  toast('Imóvel excluído.');
-});
-
-/* ================= DOC MODAL ================= */
-let pendingFileBase64 = null;
-let pendingFileMime = null;
-let pendingFileName = null;
-
-function openDocModal(id){
-  const overlay = document.getElementById('doc-overlay');
-  const isNew = id === null || id === undefined;
-  document.getElementById('doc-modal-title').textContent = isNew ? 'Novo documento' : 'Editar documento';
-  document.getElementById('delete-doc-btn').style.display = isNew ? 'none' : 'inline-flex';
-  const d = isNew ? {id:'',nome:'',tipo:'Financeiro',recebido:'Não',responsavel:'',obs:'',hasFile:false,fileName:''} : docs.find(x=>x.id===id);
-  document.getElementById('doc-id').value = d.id;
-  document.getElementById('doc-nome').value = d.nome;
-  document.getElementById('doc-tipo').value = d.tipo;
-  document.getElementById('doc-recebido').value = d.recebido;
-  document.getElementById('doc-responsavel').value = d.responsavel;
-  document.getElementById('doc-obs').value = d.obs;
-  document.getElementById('doc-file-input').value = '';
-  document.getElementById('doc-current-file').textContent = d.hasFile ? ('Arquivo atual: '+d.fileName) : '';
-  pendingFileBase64 = null; pendingFileMime = null; pendingFileName = null;
-  overlay.classList.add('active');
-}
-document.getElementById('add-doc-btn').addEventListener('click', ()=> openDocModal(null));
-document.getElementById('cancel-doc-btn').addEventListener('click', ()=> document.getElementById('doc-overlay').classList.remove('active'));
-
-document.getElementById('doc-file-input').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  if(file.size > 3.5*1024*1024){
-    toast('Arquivo muito grande (máx. ~3,5 MB). Escolha um arquivo menor.');
-    e.target.value = '';
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    const result = reader.result; // data:mime;base64,XXXX
-    const base64 = result.split(',')[1];
-    pendingFileBase64 = base64;
-    pendingFileMime = file.type;
-    pendingFileName = file.name;
-  };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById('doc-form').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const idVal = document.getElementById('doc-id').value;
-  const data = {
-    nome: document.getElementById('doc-nome').value.trim(),
-    tipo: document.getElementById('doc-tipo').value,
-    recebido: document.getElementById('doc-recebido').value,
-    responsavel: document.getElementById('doc-responsavel').value.trim(),
-    obs: document.getElementById('doc-obs').value.trim(),
-  };
-  let targetId;
-  if(idVal){
-    targetId = parseInt(idVal);
-    const idx = docs.findIndex(x=>x.id===targetId);
-    docs[idx] = {...docs[idx], ...data};
-  } else {
-    targetId = nextId(docs);
-    data.id = targetId;
-    data.hasFile = false; data.fileName=''; data.fileMime='';
-    docs.push(data);
-  }
-  if(pendingFileBase64){
-    await storeSet('doc_file_'+targetId, pendingFileBase64);
-    const idx = docs.findIndex(x=>x.id===targetId);
-    docs[idx].hasFile = true;
-    docs[idx].fileName = pendingFileName;
-    docs[idx].fileMime = pendingFileMime;
-  }
-  await storeSet('documentos_meta', docs);
-  document.getElementById('doc-overlay').classList.remove('active');
-  renderDocs();
-  toast('Documento salvo.');
-});
-document.getElementById('delete-doc-btn').addEventListener('click', async ()=>{
-  const idVal = parseInt(document.getElementById('doc-id').value);
-  if(!confirm('Excluir este documento e o arquivo anexado?')) return;
-  docs = docs.filter(x=>x.id!==idVal);
-  await storeSet('documentos_meta', docs);
-  await storeDelete('doc_file_'+idVal);
-  document.getElementById('doc-overlay').classList.remove('active');
-  renderDocs();
-  toast('Documento excluído.');
-});
-
-/* ================= FILTERS (CASOS) ================= */
-document.querySelectorAll('.chip').forEach(chip=>{
-  chip.addEventListener('click', ()=>{
-    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    activeFilter = chip.dataset.filter;
-    renderCasos();
-  });
-});
-document.getElementById('cat-filter').addEventListener('change', (e)=>{
-  activeCat = e.target.value;
-  renderCasos();
-});
-document.getElementById('search-casos').addEventListener('input', (e)=>{
-  searchTerm = e.target.value;
-  renderCasos();
-});
-
-/* ================= LOGIN ================= */
-document.getElementById('login-form').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const pin = document.getElementById('pin-input').value;
-  const name = document.getElementById('name-input').value.trim();
-  if(pin !== FAMILY_PIN){
-    document.getElementById('login-error').style.display = 'block';
-    return;
-  }
-  currentUser = name || 'Família';
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('user-badge').textContent = currentUser;
-  await loadData();
-  renderPainel();
-  renderCasos();
-  renderImoveis();
-  renderDocs();
-});
-document.getElementById('logout-btn').addEventListener('click', ()=>{
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('pin-input').value = '';
-  document.getElementById('login-error').style.display = 'none';
-});
-</script>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
