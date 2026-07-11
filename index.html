@@ -195,6 +195,10 @@
   .nota-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px 18px; border-left:4px solid var(--brass); cursor:pointer;}
   .nota-card:hover{box-shadow:0 4px 14px -8px rgba(30,42,34,0.4);}
   .nota-card .edited-badge{font-size:11px; color:var(--slate); font-style:italic; margin-top:8px;}
+  .nota-card.deleted{opacity:.65; border-left-color:var(--danger); cursor:default;}
+  .nota-card.deleted:hover{box-shadow:none;}
+  .nota-card.deleted .texto{text-decoration:line-through; color:var(--slate);}
+  .deleted-badge{font-size:11px; color:var(--danger); font-style:italic; margin-top:8px;}
   .nota-card .meta{font-size:12px; color:var(--slate); margin-bottom:6px; display:flex; gap:10px; flex-wrap:wrap;}
   .nota-card .texto{font-size:14px; line-height:1.5; white-space:pre-wrap;}
   .nota-form{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:22px;}
@@ -359,11 +363,15 @@
       <div class="nota-form">
         <div class="field-row">
           <div class="field"><label>Data</label><input type="date" id="nota-data"></div>
-          <div class="field"><label>Relacionado a (opcional)</label><select id="nota-caso"><option value="">Nenhum caso específico</option></select></div>
+          <div class="field"><label>Relacionado a (opcional)</label><select id="nota-caso"><option value="">Nenhum item específico</option></select></div>
         </div>
         <div class="field"><label>Anotação</label><textarea id="nota-texto" placeholder="O que aconteceu, o que foi decidido, próximos passos..."></textarea></div>
-        <div class="field"><label>Foto, vídeo ou arquivo (opcional)</label><input type="file" id="nota-foto-input"></div>
-        <button class="btn small" id="add-nota-btn">Adicionar anotação</button>
+        <div class="field"><label>Foto, vídeo ou arquivo (opcional)</label>
+          <label for="nota-foto-input" class="btn ghost small" style="cursor:pointer;">Selecionar arquivo</label>
+          <input type="file" id="nota-foto-input" style="display:none;">
+          <span class="file-badge" id="nota-foto-filename" style="margin-left:8px;">Nenhum arquivo selecionado</span>
+        </div>
+        <button class="btn small" id="add-nota-btn">Salvar observação</button>
       </div>
       <div class="notas-list" id="notas-list"></div>
     </section>
@@ -490,7 +498,9 @@
       </div>
       <div class="field"><label>Responsável</label><input type="text" id="doc-responsavel"></div>
       <div class="field"><label>Arquivo (opcional)</label>
-        <input type="file" id="doc-file-input">
+        <label for="doc-file-input" class="btn ghost small" style="cursor:pointer;">Selecionar arquivo</label>
+        <input type="file" id="doc-file-input" style="display:none;">
+        <span class="file-badge" id="doc-file-filename">Nenhum arquivo selecionado</span>
         <div class="file-badge" id="doc-current-file" style="margin-top:6px;"></div>
       </div>
       <div class="field"><label>Observações / pendência</label><textarea id="doc-obs"></textarea></div>
@@ -561,14 +571,16 @@
       <input type="hidden" id="nota-edit-id">
       <div class="field-row">
         <div class="field"><label>Data</label><input type="date" id="nota-edit-data" required></div>
-        <div class="field"><label>Relacionado a</label><select id="nota-edit-caso"><option value="">Nenhum caso específico</option></select></div>
+        <div class="field"><label>Relacionado a</label><select id="nota-edit-caso"><option value="">Nenhum item específico</option></select></div>
       </div>
       <div class="field"><label>Anotação</label><textarea id="nota-edit-texto" required></textarea></div>
       <div class="field">
         <label>Anexo atual</label>
         <div class="file-badge" id="nota-edit-current-file" style="margin-bottom:8px;"></div>
         <label style="margin-top:6px;">Substituir por outro arquivo (opcional)</label>
-        <input type="file" id="nota-edit-file-input">
+        <label for="nota-edit-file-input" class="btn ghost small" style="cursor:pointer;">Selecionar arquivo</label>
+        <input type="file" id="nota-edit-file-input" style="display:none;">
+        <span class="file-badge" id="nota-edit-file-filename">Nenhum arquivo selecionado</span>
         <label style="display:flex; align-items:center; gap:6px; margin-top:8px; font-weight:400; text-transform:none; letter-spacing:0;">
           <input type="checkbox" id="nota-edit-remove-file" style="width:auto;"> Remover anexo atual
         </label>
@@ -987,6 +999,7 @@ function openDocModal(id){
   document.getElementById('doc-responsavel').value = d.responsavel || '';
   document.getElementById('doc-obs').value = d.obs || '';
   document.getElementById('doc-file-input').value = '';
+  document.getElementById('doc-file-filename').textContent = d.storage_path ? d.file_name : 'Nenhum arquivo selecionado';
   document.getElementById('doc-current-file').textContent = d.storage_path ? ('Arquivo atual: '+d.file_name) : '';
   pendingFile = null;
   overlay.classList.add('active');
@@ -996,8 +1009,9 @@ document.getElementById('cancel-doc-btn').addEventListener('click', ()=> documen
 document.getElementById('doc-file-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
-  if(file.size > 40*1024*1024){ toast('Arquivo muito grande (máx. 40 MB).'); e.target.value=''; return; }
+  if(file.size > 40*1024*1024){ toast('Arquivo muito grande (máx. 40 MB).'); e.target.value=''; document.getElementById('doc-file-filename').textContent='Nenhum arquivo selecionado'; return; }
   pendingFile = file;
+  document.getElementById('doc-file-filename').textContent = file.name;
 });
 document.getElementById('doc-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -1046,8 +1060,14 @@ document.getElementById('delete-doc-btn').addEventListener('click', async ()=>{
 
 /* ================= NOTAS ================= */
 function populateNotaCasoSelect(){
-  const sel = document.getElementById('nota-caso');
-  sel.innerHTML = '<option value="">Nenhum caso específico</option>' + casos.map(c=>`<option value="${c.id}">#${c.id} — ${c.tema}</option>`).join('');
+  [document.getElementById('nota-caso'), document.getElementById('nota-edit-caso')].forEach(sel=>{
+    if(!sel) return;
+    const casosOpts = casos.map(c=>`<option value="c-${c.id}">#${c.id} — ${c.tema}</option>`).join('');
+    const imoveisOpts = imoveis.map(im=>`<option value="i-${im.id}">${im.nome}</option>`).join('');
+    sel.innerHTML = `<option value="">Nenhum item específico</option>
+      <optgroup label="Casos">${casosOpts}</optgroup>
+      <optgroup label="Imóveis">${imoveisOpts}</optgroup>`;
+  });
 }
 function attachmentHTML(n){
   if(!n.foto_path) return '';
@@ -1068,15 +1088,19 @@ function renderNotas(){
     ? `<div class="empty"><div class="big">—</div>Nenhuma anotação registrada ainda.</div>`
     : notas.map(n=>{
         const caso = casos.find(c=>c.id===n.caso_id);
-        return `<div class="nota-card" data-id="${n.id}">
+        const imovel = imoveis.find(im=>im.id===n.imovel_id);
+        const isDeleted = !!n.deleted_at;
+        return `<div class="nota-card ${isDeleted?'deleted':''}" data-id="${n.id}">
           <div class="meta">
             <strong>${fmtDate(n.data)}</strong>
             <span>${n.autor_nome||'—'}</span>
             ${caso ? `<span>· caso #${caso.id} — ${caso.tema}</span>` : ''}
+            ${imovel ? `<span>· imóvel — ${imovel.nome}</span>` : ''}
           </div>
           <div class="texto">${n.texto}</div>
-          ${attachmentHTML(n)}
-          ${n.edited_at ? `<div class="edited-badge">Editado por ${n.edited_by_nome||'—'} em ${fmtDateTime(n.edited_at)}</div>` : ''}
+          ${!isDeleted ? attachmentHTML(n) : ''}
+          ${n.edited_at && !isDeleted ? `<div class="edited-badge">Editado por ${n.edited_by_nome||'—'} em ${fmtDateTime(n.edited_at)}</div>` : ''}
+          ${isDeleted ? `<div class="deleted-badge">Excluído por ${n.deleted_by_nome||'—'} em ${fmtDateTime(n.deleted_at)} — <span data-restore="${n.id}" style="text-decoration:underline; cursor:pointer;">restaurar</span></div>` : ''}
         </div>`;
       }).join('');
   list.querySelectorAll('[data-path]').forEach(async (el)=>{
@@ -1092,8 +1116,20 @@ function renderNotas(){
       el.addEventListener('click', (e)=>{ e.stopPropagation(); window.open(data.signedUrl, '_blank'); });
     }
   });
-  list.querySelectorAll('.nota-card').forEach(card=>{
+  list.querySelectorAll('.nota-card:not(.deleted)').forEach(card=>{
     card.addEventListener('click', ()=> openNotaEditModal(parseInt(card.dataset.id)));
+  });
+  list.querySelectorAll('[data-restore]').forEach(el=>{
+    el.addEventListener('click', async (e)=>{
+      e.stopPropagation();
+      const id = parseInt(el.dataset.restore);
+      const { error } = await sb.from('notas').update({ deleted_at:null, deleted_by_nome:null }).eq('id', id);
+      if(error){ toast('Erro ao restaurar: ' + error.message); return; }
+      const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
+      notas = n || [];
+      renderNotas();
+      toast('Anotação restaurada.');
+    });
   });
 }
 
@@ -1105,10 +1141,11 @@ function openNotaEditModal(id){
   populateNotaCasoSelect();
   document.getElementById('nota-edit-id').value = n.id;
   document.getElementById('nota-edit-data').value = n.data;
-  document.getElementById('nota-edit-caso').value = n.caso_id || '';
+  document.getElementById('nota-edit-caso').value = n.imovel_id ? ('i-'+n.imovel_id) : (n.caso_id ? ('c-'+n.caso_id) : '');
   document.getElementById('nota-edit-texto').value = n.texto;
   document.getElementById('nota-edit-current-file').textContent = n.foto_path ? ('Arquivo atual: '+n.foto_path.split('/').pop()) : 'Nenhum anexo';
   document.getElementById('nota-edit-file-input').value = '';
+  document.getElementById('nota-edit-file-filename').textContent = 'Nenhum arquivo selecionado';
   document.getElementById('nota-edit-remove-file').checked = false;
   pendingNotaEditFile = null;
   removeNotaEditFile = false;
@@ -1118,8 +1155,9 @@ document.getElementById('cancel-nota-edit-btn').addEventListener('click', ()=> d
 document.getElementById('nota-edit-file-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
-  if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; return; }
+  if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; document.getElementById('nota-edit-file-filename').textContent='Nenhum arquivo selecionado'; return; }
   pendingNotaEditFile = file;
+  document.getElementById('nota-edit-file-filename').textContent = file.name;
 });
 document.getElementById('nota-edit-remove-file').addEventListener('change', (e)=>{
   removeNotaEditFile = e.target.checked;
@@ -1133,7 +1171,8 @@ document.getElementById('nota-edit-form').addEventListener('submit', async (e)=>
     const casoVal = document.getElementById('nota-edit-caso').value;
     const payload = {
       data: document.getElementById('nota-edit-data').value,
-      caso_id: casoVal ? parseInt(casoVal) : null,
+      caso_id: casoVal.startsWith('c-') ? parseInt(casoVal.slice(2)) : null,
+      imovel_id: casoVal.startsWith('i-') ? parseInt(casoVal.slice(2)) : null,
       texto: document.getElementById('nota-edit-texto').value.trim(),
       edited_at: new Date().toISOString(),
       edited_by_nome: currentProfile.nome,
@@ -1160,9 +1199,9 @@ document.getElementById('nota-edit-form').addEventListener('submit', async (e)=>
   }
 });
 document.getElementById('delete-nota-btn').addEventListener('click', async ()=>{
-  if(!confirm('Excluir esta anotação? Esta ação não pode ser desfeita.')) return;
+  if(!confirm('Marcar esta anotação como excluída? Ela continuará visível (riscada) para a família, com a informação de quem excluiu, e pode ser restaurada depois.')) return;
   const id = parseInt(document.getElementById('nota-edit-id').value);
-  const { error } = await sb.from('notas').delete().eq('id', id);
+  const { error } = await sb.from('notas').update({ deleted_at: new Date().toISOString(), deleted_by_nome: currentProfile.nome }).eq('id', id);
   if(error){ toast('Erro ao excluir: ' + error.message); return; }
   const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
   notas = n || [];
@@ -1173,16 +1212,19 @@ document.getElementById('delete-nota-btn').addEventListener('click', async ()=>{
 document.getElementById('nota-foto-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
-  if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; return; }
+  if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; document.getElementById('nota-foto-filename').textContent='Nenhum arquivo selecionado'; return; }
   pendingNotaFoto = file;
+  document.getElementById('nota-foto-filename').textContent = file.name;
 });
 document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   const texto = document.getElementById('nota-texto').value.trim();
   const data = document.getElementById('nota-data').value;
-  const casoId = document.getElementById('nota-caso').value || null;
+  const relVal = document.getElementById('nota-caso').value;
   if(!texto){ toast('Escreva algo antes de salvar.'); return; }
   const payload = {
-    autor: currentProfile.id, autor_nome: currentProfile.nome, data, texto, caso_id: casoId ? parseInt(casoId) : null
+    autor: currentProfile.id, autor_nome: currentProfile.nome, data, texto,
+    caso_id: relVal.startsWith('c-') ? parseInt(relVal.slice(2)) : null,
+    imovel_id: relVal.startsWith('i-') ? parseInt(relVal.slice(2)) : null,
   };
   if(pendingNotaFoto){
     const path = `notas/${Date.now()}_${pendingNotaFoto.name}`.replace(/\s+/g,'_');
@@ -1191,9 +1233,12 @@ document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
     payload.foto_path = path;
     payload.arquivo_mime = pendingNotaFoto.type;
   }
-  await sb.from('notas').insert(payload);
+  const { error } = await sb.from('notas').insert(payload);
+  if(error){ toast('Erro ao salvar: ' + error.message); return; }
   document.getElementById('nota-texto').value = '';
   document.getElementById('nota-foto-input').value = '';
+  document.getElementById('nota-foto-filename').textContent = 'Nenhum arquivo selecionado';
+  document.getElementById('nota-caso').value = '';
   pendingNotaFoto = null;
   const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
   notas = n || [];
