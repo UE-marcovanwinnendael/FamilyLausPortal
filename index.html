@@ -192,7 +192,9 @@
   .comment-form textarea{min-height:44px; flex:1;}
 
   .notas-list{display:flex; flex-direction:column; gap:14px;}
-  .nota-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px 18px; border-left:4px solid var(--brass);}
+  .nota-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:16px 18px; border-left:4px solid var(--brass); cursor:pointer;}
+  .nota-card:hover{box-shadow:0 4px 14px -8px rgba(30,42,34,0.4);}
+  .nota-card .edited-badge{font-size:11px; color:var(--slate); font-style:italic; margin-top:8px;}
   .nota-card .meta{font-size:12px; color:var(--slate); margin-bottom:6px; display:flex; gap:10px; flex-wrap:wrap;}
   .nota-card .texto{font-size:14px; line-height:1.5; white-space:pre-wrap;}
   .nota-form{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; margin-bottom:22px;}
@@ -299,7 +301,7 @@
     <button data-view="casos">Casos</button>
     <button data-view="imoveis">Imóveis</button>
     <button data-view="documentos">Documentos</button>
-    <button data-view="notas">Notas</button>
+    <button data-view="notas">Anotações</button>
     <button data-view="calendario">Calendário</button>
   </nav>
 
@@ -352,7 +354,7 @@
 
     <section class="view" id="view-notas">
       <div class="panel-head">
-        <div><h1 class="serif">Notas / Relatórios</h1><p class="desc">Registro de acompanhamento com data — o histórico de tudo o que foi discutido ou decidido.</p></div>
+        <div><h1 class="serif">Anotações / Relatórios</h1><p class="desc">Registro de acompanhamento com data — o histórico de tudo o que foi discutido ou decidido.</p></div>
       </div>
       <div class="nota-form">
         <div class="field-row">
@@ -361,7 +363,7 @@
         </div>
         <div class="field"><label>Anotação</label><textarea id="nota-texto" placeholder="O que aconteceu, o que foi decidido, próximos passos..."></textarea></div>
         <div class="field"><label>Foto, vídeo ou arquivo (opcional)</label><input type="file" id="nota-foto-input"></div>
-        <button class="btn small" id="add-nota-btn">Adicionar nota</button>
+        <button class="btn small" id="add-nota-btn">Adicionar anotação</button>
       </div>
       <div class="notas-list" id="notas-list"></div>
     </section>
@@ -545,6 +547,37 @@
         <div style="display:flex; gap:10px; margin-left:auto;">
           <button type="button" class="btn ghost small" id="cancel-evento-btn">Cancelar</button>
           <button type="submit" class="btn small">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: nota -->
+<div class="overlay" id="nota-overlay">
+  <div class="modal">
+    <h2 class="serif">Editar anotação</h2>
+    <form id="nota-edit-form">
+      <input type="hidden" id="nota-edit-id">
+      <div class="field-row">
+        <div class="field"><label>Data</label><input type="date" id="nota-edit-data" required></div>
+        <div class="field"><label>Relacionado a</label><select id="nota-edit-caso"><option value="">Nenhum caso específico</option></select></div>
+      </div>
+      <div class="field"><label>Anotação</label><textarea id="nota-edit-texto" required></textarea></div>
+      <div class="field">
+        <label>Anexo atual</label>
+        <div class="file-badge" id="nota-edit-current-file" style="margin-bottom:8px;"></div>
+        <label style="margin-top:6px;">Substituir por outro arquivo (opcional)</label>
+        <input type="file" id="nota-edit-file-input">
+        <label style="display:flex; align-items:center; gap:6px; margin-top:8px; font-weight:400; text-transform:none; letter-spacing:0;">
+          <input type="checkbox" id="nota-edit-remove-file" style="width:auto;"> Remover anexo atual
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger small" id="delete-nota-btn">Excluir anotação</button>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button type="button" class="btn ghost small" id="cancel-nota-edit-btn">Cancelar</button>
+          <button type="submit" class="btn small" id="nota-edit-save-btn">Salvar</button>
         </div>
       </div>
     </form>
@@ -1032,10 +1065,10 @@ function renderNotas(){
   document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
   const list = document.getElementById('notas-list');
   list.innerHTML = notas.length===0
-    ? `<div class="empty"><div class="big">—</div>Nenhuma nota registrada ainda.</div>`
+    ? `<div class="empty"><div class="big">—</div>Nenhuma anotação registrada ainda.</div>`
     : notas.map(n=>{
         const caso = casos.find(c=>c.id===n.caso_id);
-        return `<div class="nota-card">
+        return `<div class="nota-card" data-id="${n.id}">
           <div class="meta">
             <strong>${fmtDate(n.data)}</strong>
             <span>${n.autor_nome||'—'}</span>
@@ -1043,6 +1076,7 @@ function renderNotas(){
           </div>
           <div class="texto">${n.texto}</div>
           ${attachmentHTML(n)}
+          ${n.edited_at ? `<div class="edited-badge">Editado por ${n.edited_by_nome||'—'} em ${fmtDateTime(n.edited_at)}</div>` : ''}
         </div>`;
       }).join('');
   list.querySelectorAll('[data-path]').forEach(async (el)=>{
@@ -1050,14 +1084,92 @@ function renderNotas(){
     if(!data) return;
     if(el.tagName === 'IMG'){
       el.src = data.signedUrl;
-      el.addEventListener('click', ()=> window.open(data.signedUrl, '_blank'));
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); window.open(data.signedUrl, '_blank'); });
     } else if(el.tagName === 'VIDEO'){
       el.src = data.signedUrl;
+      el.addEventListener('click', (e)=> e.stopPropagation());
     } else {
-      el.addEventListener('click', ()=> window.open(data.signedUrl, '_blank'));
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); window.open(data.signedUrl, '_blank'); });
     }
   });
+  list.querySelectorAll('.nota-card').forEach(card=>{
+    card.addEventListener('click', ()=> openNotaEditModal(parseInt(card.dataset.id)));
+  });
 }
+
+let pendingNotaEditFile = null;
+let removeNotaEditFile = false;
+function openNotaEditModal(id){
+  const n = notas.find(x=>x.id===id);
+  if(!n) return;
+  populateNotaCasoSelect();
+  document.getElementById('nota-edit-id').value = n.id;
+  document.getElementById('nota-edit-data').value = n.data;
+  document.getElementById('nota-edit-caso').value = n.caso_id || '';
+  document.getElementById('nota-edit-texto').value = n.texto;
+  document.getElementById('nota-edit-current-file').textContent = n.foto_path ? ('Arquivo atual: '+n.foto_path.split('/').pop()) : 'Nenhum anexo';
+  document.getElementById('nota-edit-file-input').value = '';
+  document.getElementById('nota-edit-remove-file').checked = false;
+  pendingNotaEditFile = null;
+  removeNotaEditFile = false;
+  document.getElementById('nota-overlay').classList.add('active');
+}
+document.getElementById('cancel-nota-edit-btn').addEventListener('click', ()=> document.getElementById('nota-overlay').classList.remove('active'));
+document.getElementById('nota-edit-file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; return; }
+  pendingNotaEditFile = file;
+});
+document.getElementById('nota-edit-remove-file').addEventListener('change', (e)=>{
+  removeNotaEditFile = e.target.checked;
+});
+document.getElementById('nota-edit-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const saveBtn = document.getElementById('nota-edit-save-btn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Salvando...';
+  try{
+    const id = parseInt(document.getElementById('nota-edit-id').value);
+    const casoVal = document.getElementById('nota-edit-caso').value;
+    const payload = {
+      data: document.getElementById('nota-edit-data').value,
+      caso_id: casoVal ? parseInt(casoVal) : null,
+      texto: document.getElementById('nota-edit-texto').value.trim(),
+      edited_at: new Date().toISOString(),
+      edited_by_nome: currentProfile.nome,
+    };
+    if(pendingNotaEditFile){
+      const path = `notas/${Date.now()}_${pendingNotaEditFile.name}`.replace(/\s+/g,'_');
+      const { error: upErr } = await sb.storage.from(DOCS_BUCKET).upload(path, pendingNotaEditFile, { upsert:false });
+      if(upErr){ toast('Erro ao enviar o arquivo.'); return; }
+      payload.foto_path = path;
+      payload.arquivo_mime = pendingNotaEditFile.type;
+    } else if(removeNotaEditFile){
+      payload.foto_path = null;
+      payload.arquivo_mime = null;
+    }
+    const { error } = await sb.from('notas').update(payload).eq('id', id);
+    if(error){ toast('Erro ao salvar: ' + error.message); return; }
+    const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
+    notas = n || [];
+    document.getElementById('nota-overlay').classList.remove('active');
+    renderNotas();
+    toast('Anotação atualizada.');
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Salvar';
+  }
+});
+document.getElementById('delete-nota-btn').addEventListener('click', async ()=>{
+  if(!confirm('Excluir esta anotação? Esta ação não pode ser desfeita.')) return;
+  const id = parseInt(document.getElementById('nota-edit-id').value);
+  const { error } = await sb.from('notas').delete().eq('id', id);
+  if(error){ toast('Erro ao excluir: ' + error.message); return; }
+  const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
+  notas = n || [];
+  document.getElementById('nota-overlay').classList.remove('active');
+  renderNotas();
+  toast('Anotação excluída.');
+});
 document.getElementById('nota-foto-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
@@ -1086,7 +1198,7 @@ document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
   notas = n || [];
   renderNotas();
-  toast('Nota adicionada.');
+  toast('Anotação adicionada.');
 });
 
 /* ================= CALENDÁRIO ================= */
