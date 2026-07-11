@@ -25,7 +25,7 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{background:var(--paper); color:var(--ink); font-family:'Source Sans 3', sans-serif; min-height:100vh;}
+  body{background:var(--paper); color:var(--ink); font-family:'Source Sans 3', sans-serif; min-height:100vh; overflow-x:hidden;}
   .serif{font-family:'Fraunces', serif;}
   .mono{font-family:'IBM Plex Mono', monospace;}
 
@@ -242,8 +242,16 @@
     main{padding:18px 16px 50px;}
     .field-row{grid-template-columns:1fr;}
     .ficha{flex-wrap:wrap;}
-    .cal-layout{grid-template-columns:1fr;}
-    .cal-day{min-height:46px;}
+    .cal-layout{grid-template-columns:1fr; gap:14px;}
+    .cal-panel{padding:10px;}
+    .cal-grid{gap:2px;}
+    .cal-day{min-height:38px; padding:3px 2px;}
+    .cal-day .daynum{font-size:11px;}
+    .cal-dot{width:5px; height:5px;}
+    .cal-weekday{font-size:9.5px; padding:2px 0;}
+    .cal-month{font-size:15px;}
+    .overlay{padding:16px 8px;}
+    .modal{padding:20px 16px 18px; max-width:100%;}
   }
 </style>
 </head>
@@ -327,10 +335,12 @@
         <div><h1 class="serif">Documentos</h1><p class="desc">Envie e acompanhe os documentos necessários para cada item do painel.</p></div>
         <button class="btn" id="add-doc-btn">+ Novo documento</button>
       </div>
+      <div style="overflow-x:auto;">
       <table class="doc-table">
         <thead><tr><th>Documento</th><th>Tipo</th><th>Recebido?</th><th>Arquivo</th><th>Responsável</th><th style="text-align:right;">Ações</th></tr></thead>
         <tbody id="doc-table-body"></tbody>
       </table>
+      </div>
     </section>
 
     <section class="view" id="view-notas">
@@ -521,6 +531,7 @@
         </div>
       </div>
       <div class="field"><label>Relacionado a (opcional)</label><select id="evento-caso"><option value="">Nenhum caso específico</option></select></div>
+      <div class="field"><label>Ou digite um nome livre (se não estiver na lista acima)</label><input type="text" id="evento-relacionado-texto" placeholder="Ex: Imóvel Bella Sintra 101, Fornecedor X..."></div>
       <div class="field"><label>Descrição</label><textarea id="evento-desc"></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn danger small" id="delete-evento-btn" style="display:none;">Excluir</button>
@@ -886,7 +897,7 @@ function renderDocs(){
   body.innerHTML = docs.length===0
     ? `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:30px;">Nenhum documento cadastrado.</td></tr>`
     : docs.map(d=>`
-    <tr>
+    <tr class="doc-row" data-id="${d.id}" style="cursor:pointer;">
       <td class="doc-name">${d.nome}</td>
       <td>${d.tipo||'—'}</td>
       <td><span class="yn ${d.recebido?'sim':'nao'}">${d.recebido?'Sim':'Não'}</span></td>
@@ -897,8 +908,14 @@ function renderDocs(){
         <button class="btn ghost small" data-edit="${d.id}">Editar</button>
       </td>
     </tr>`).join('');
-  body.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', ()=> openDocModal(parseInt(btn.dataset.edit))));
-  body.querySelectorAll('[data-download]').forEach(btn=> btn.addEventListener('click', ()=> downloadDoc(parseInt(btn.dataset.download))));
+  body.querySelectorAll('.doc-row').forEach(row=>{
+    row.addEventListener('click', (e)=>{
+      if(e.target.closest('button')) return;
+      openDocModal(parseInt(row.dataset.id));
+    });
+  });
+  body.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); openDocModal(parseInt(btn.dataset.edit)); }));
+  body.querySelectorAll('[data-download]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); downloadDoc(parseInt(btn.dataset.download)); }));
 }
 async function downloadDoc(id){
   const meta = docs.find(d=>d.id===id);
@@ -1052,7 +1069,7 @@ function buildCalendarItems(){
     }
   });
   eventos.forEach(ev=>{
-    items.push({ data: ev.data, titulo: ev.titulo, tipo: ev.tipo, descricao: ev.descricao, casoId: ev.caso_id, isEvento:true, id: ev.id });
+    items.push({ data: ev.data, titulo: ev.titulo, tipo: ev.tipo, descricao: ev.descricao, casoId: ev.caso_id, relacionadoTexto: ev.relacionado_texto, isEvento:true, id: ev.id });
   });
   return items;
 }
@@ -1099,6 +1116,7 @@ function agendaItemHTML(it){
   return `<div class="agenda-item ${tipoSlug(it.tipo)}" data-evento-id="${it.isEvento?it.id:''}" data-caso-id="${it.casoId||''}">
     <div class="adate">${fmtDate(it.data)} · ${it.tipo}</div>
     <div class="atitle">${it.titulo}</div>
+    ${it.relacionadoTexto ? `<div style="color:var(--brass); margin-top:3px; font-size:12px;">↳ ${it.relacionadoTexto}</div>` : ''}
     ${it.descricao ? `<div style="color:var(--slate); margin-top:3px;">${it.descricao}</div>` : ''}
   </div>`;
 }
@@ -1159,6 +1177,7 @@ function openEventoModal(id){
   document.getElementById('evento-data').value = ev.data || '';
   document.getElementById('evento-tipo').value = ev.tipo || 'Reunião';
   document.getElementById('evento-caso').value = ev.caso_id || '';
+  document.getElementById('evento-relacionado-texto').value = ev.relacionado_texto || '';
   document.getElementById('evento-desc').value = ev.descricao || '';
   overlay.classList.add('active');
 }
@@ -1174,14 +1193,24 @@ document.getElementById('evento-form').addEventListener('submit', async (e)=>{
     tipo: document.getElementById('evento-tipo').value,
     descricao: document.getElementById('evento-desc').value.trim(),
     caso_id: casoVal ? parseInt(casoVal) : null,
+    relacionado_texto: document.getElementById('evento-relacionado-texto').value.trim() || null,
   };
+  let err;
   if(idVal){
-    await sb.from('eventos').update(data).eq('id', idVal);
+    const r = await sb.from('eventos').update(data).eq('id', idVal);
+    err = r.error;
   } else {
     data.created_by = currentProfile.id;
-    await sb.from('eventos').insert(data);
+    const r = await sb.from('eventos').insert(data);
+    err = r.error;
   }
-  const { data: ev } = await sb.from('eventos').select('*').order('data');
+  if(err){
+    toast('Erro ao salvar: ' + err.message);
+    console.error(err);
+    return;
+  }
+  const { data: ev, error: loadErr } = await sb.from('eventos').select('*').order('data');
+  if(loadErr){ toast('Erro ao recarregar eventos: ' + loadErr.message); return; }
   eventos = ev || [];
   document.getElementById('evento-overlay').classList.remove('active');
   renderCalendar();
@@ -1190,7 +1219,8 @@ document.getElementById('evento-form').addEventListener('submit', async (e)=>{
 document.getElementById('delete-evento-btn').addEventListener('click', async ()=>{
   const idVal = parseInt(document.getElementById('evento-id').value);
   if(!confirm('Excluir este evento?')) return;
-  await sb.from('eventos').delete().eq('id', idVal);
+  const { error } = await sb.from('eventos').delete().eq('id', idVal);
+  if(error){ toast('Erro ao excluir: ' + error.message); return; }
   const { data: ev } = await sb.from('eventos').select('*').order('data');
   eventos = ev || [];
   document.getElementById('evento-overlay').classList.remove('active');
