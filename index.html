@@ -129,6 +129,8 @@
     display:flex; gap:16px; align-items:flex-start; border-left:5px solid var(--slate); cursor:pointer;
   }
   .ficha:hover{box-shadow:0 4px 14px -8px rgba(30,42,34,0.4);}
+  .ficha.readonly{cursor:default;}
+  .ficha.readonly:hover{box-shadow:none;}
   .ficha.risco-critico, .ficha.risco-critico-{border-left-color:var(--danger);}
   .ficha.risco-alta{border-left-color:var(--amber);}
   .ficha.risco-media{border-left-color:var(--sage);}
@@ -684,8 +686,7 @@ function renderPainel(){
   const listEl = document.getElementById('criticos-list');
   listEl.innerHTML = criticos.length===0
     ? `<div class="empty"><div class="big">✓</div>Nenhum caso crítico em aberto no momento.</div>`
-    : criticos.map(fichaHTML).join('');
-  attachFichaHandlers(listEl);
+    : criticos.map(c=>fichaHTML(c, true)).join('');
 }
 
 /* ================= CASOS ================= */
@@ -694,9 +695,9 @@ function statusClass(status){
   const map = {'Não iniciado':'s-nao-iniciado','Em andamento':'s-em-andamento','Aguardando terceiros':'s-aguardando','Pendente':'s-pendente','Concluído':'s-concluido','Cancelado':'s-cancelado'};
   return map[status] || 's-nao-iniciado';
 }
-function fichaHTML(c){
+function fichaHTML(c, readonly){
   return `
-  <div class="ficha ${riscoClass(c.risco)}" data-id="${c.id}">
+  <div class="ficha ${riscoClass(c.risco)} ${readonly ? 'readonly' : ''}" data-id="${c.id}">
     <div class="idnum mono">#${String(c.id).padStart(2,'0')}</div>
     <div class="body">
       <div class="cat">${c.categoria||''}</div>
