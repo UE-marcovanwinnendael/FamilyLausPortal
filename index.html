@@ -355,7 +355,7 @@
           <div class="field"><label>Relacionado a (opcional)</label><select id="nota-caso"><option value="">Nenhum caso específico</option></select></div>
         </div>
         <div class="field"><label>Anotação</label><textarea id="nota-texto" placeholder="O que aconteceu, o que foi decidido, próximos passos..."></textarea></div>
-        <div class="field"><label>Foto (opcional)</label><input type="file" id="nota-foto-input" accept="image/*"></div>
+        <div class="field"><label>Foto, vídeo ou arquivo (opcional)</label><input type="file" id="nota-foto-input"></div>
         <button class="btn small" id="add-nota-btn">Adicionar nota</button>
       </div>
       <div class="notas-list" id="notas-list"></div>
@@ -1000,6 +1000,17 @@ function populateNotaCasoSelect(){
   const sel = document.getElementById('nota-caso');
   sel.innerHTML = '<option value="">Nenhum caso específico</option>' + casos.map(c=>`<option value="${c.id}">#${c.id} — ${c.tema}</option>`).join('');
 }
+function attachmentHTML(n){
+  if(!n.foto_path) return '';
+  const mime = n.arquivo_mime || '';
+  if(mime.startsWith('image/')){
+    return `<img class="nota-photo" data-path="${n.foto_path}" alt="Anexo">`;
+  }
+  if(mime.startsWith('video/')){
+    return `<video class="nota-photo" data-path="${n.foto_path}" controls style="width:100%; max-width:320px;"></video>`;
+  }
+  return `<div class="nota-anexo" data-path="${n.foto_path}" style="margin-top:10px; cursor:pointer; color:var(--brass); font-size:13px; text-decoration:underline;">📎 Baixar anexo</div>`;
+}
 function renderNotas(){
   populateNotaCasoSelect();
   document.getElementById('nota-data').value = new Date().toISOString().slice(0,10);
@@ -1015,21 +1026,26 @@ function renderNotas(){
             ${caso ? `<span>· caso #${caso.id} — ${caso.tema}</span>` : ''}
           </div>
           <div class="texto">${n.texto}</div>
-          ${n.foto_path ? `<img class="nota-photo" data-path="${n.foto_path}" alt="Foto anexada">` : ''}
+          ${attachmentHTML(n)}
         </div>`;
       }).join('');
-  list.querySelectorAll('.nota-photo').forEach(async (img)=>{
-    const { data } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(img.dataset.path, 300);
-    if(data){
-      img.src = data.signedUrl;
-      img.addEventListener('click', ()=> window.open(data.signedUrl, '_blank'));
+  list.querySelectorAll('[data-path]').forEach(async (el)=>{
+    const { data } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(el.dataset.path, 300);
+    if(!data) return;
+    if(el.tagName === 'IMG'){
+      el.src = data.signedUrl;
+      el.addEventListener('click', ()=> window.open(data.signedUrl, '_blank'));
+    } else if(el.tagName === 'VIDEO'){
+      el.src = data.signedUrl;
+    } else {
+      el.addEventListener('click', ()=> window.open(data.signedUrl, '_blank'));
     }
   });
 }
 document.getElementById('nota-foto-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if(!file) return;
-  if(file.size > 15*1024*1024){ toast('Foto muito grande (máx. 15 MB).'); e.target.value=''; return; }
+  if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; return; }
   pendingNotaFoto = file;
 });
 document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
@@ -1043,8 +1059,9 @@ document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   if(pendingNotaFoto){
     const path = `notas/${Date.now()}_${pendingNotaFoto.name}`.replace(/\s+/g,'_');
     const { error: upErr } = await sb.storage.from(DOCS_BUCKET).upload(path, pendingNotaFoto, { upsert:false });
-    if(upErr){ toast('Erro ao enviar a foto.'); return; }
+    if(upErr){ toast('Erro ao enviar o arquivo.'); return; }
     payload.foto_path = path;
+    payload.arquivo_mime = pendingNotaFoto.type;
   }
   await sb.from('notas').insert(payload);
   document.getElementById('nota-texto').value = '';
