@@ -350,9 +350,7 @@
         <div class="panel-head">
           <div><h2 class="section-title serif">Assuntos</h2></div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button class="btn" id="add-caso-btn">+ Assunto</button>
-            <button class="btn ghost" id="add-imovel-btn">+ Imóvel</button>
-            <button class="btn ghost" id="add-doc-btn">+ Documento</button>
+            <button class="btn" id="add-generic-btn">+ Adicionar</button>
           </div>
         </div>
         <div class="board-grid" id="board-grid"></div>
@@ -549,6 +547,19 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL: kies type om toe te voegen -->
+<div class="overlay" id="add-type-overlay">
+  <div class="modal" style="max-width:320px; text-align:center;">
+    <h2 class="serif" style="font-size:19px;">O que deseja adicionar?</h2>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:22px;">
+      <button class="btn" id="choose-caso-btn">Assunto</button>
+      <button class="btn ghost" id="choose-imovel-btn">Imóvel</button>
+      <button class="btn ghost" id="choose-doc-btn">Documento</button>
+    </div>
+    <button type="button" class="btn ghost small" id="cancel-add-type-btn" style="margin-top:18px;">Cancelar</button>
   </div>
 </div>
 
@@ -893,7 +904,20 @@ async function openCasoModal(id){
   overlay.classList.add('active');
   if(!isNew) await loadCommentsGeneric('caso_id', id, 'comments-list-caso');
 }
-document.getElementById('add-caso-btn').addEventListener('click', ()=> openCasoModal(null));
+document.getElementById('add-generic-btn').addEventListener('click', ()=> document.getElementById('add-type-overlay').classList.add('active'));
+document.getElementById('cancel-add-type-btn').addEventListener('click', ()=> document.getElementById('add-type-overlay').classList.remove('active'));
+document.getElementById('choose-caso-btn').addEventListener('click', ()=>{
+  document.getElementById('add-type-overlay').classList.remove('active');
+  openCasoModal(null);
+});
+document.getElementById('choose-imovel-btn').addEventListener('click', ()=>{
+  document.getElementById('add-type-overlay').classList.remove('active');
+  openImovelModal(null);
+});
+document.getElementById('choose-doc-btn').addEventListener('click', ()=>{
+  document.getElementById('add-type-overlay').classList.remove('active');
+  openDocModal(null);
+});
 document.getElementById('cancel-caso-btn').addEventListener('click', ()=> document.getElementById('caso-overlay').classList.remove('active'));
 document.getElementById('caso-categoria').addEventListener('change', ()=>{
   document.getElementById('caso-desc').value = '';
@@ -1031,7 +1055,6 @@ function openImovelModal(id){
   overlay.classList.add('active');
   if(!isNew) loadCommentsGeneric('imovel_id', id, 'comments-list-imovel');
 }
-document.getElementById('add-imovel-btn').addEventListener('click', ()=> openImovelModal(null));
 document.getElementById('cancel-imovel-btn').addEventListener('click', ()=> document.getElementById('imovel-overlay').classList.remove('active'));
 document.getElementById('imovel-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -1103,7 +1126,6 @@ function openDocModal(id){
   overlay.classList.add('active');
   if(!isNew) loadCommentsGeneric('documento_id', id, 'comments-list-doc');
 }
-document.getElementById('add-doc-btn').addEventListener('click', ()=> openDocModal(null));
 document.getElementById('cancel-doc-btn').addEventListener('click', ()=> document.getElementById('doc-overlay').classList.remove('active'));
 document.getElementById('doc-file-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
