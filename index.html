@@ -346,9 +346,6 @@
       <div class="panel-head">
         <div><h1 class="serif">Planilha</h1><p class="desc">Resumo de todos os temas em acompanhamento pela família.</p></div>
       </div>
-      <div class="panel-head"><div><h1 class="serif" style="font-size:19px;">Prioridades críticas</h1></div></div>
-      <div class="cases" id="criticos-list"></div>
-
       <div class="dash-section">
         <div class="panel-head">
           <div><h2 class="section-title serif">Assuntos</h2></div>
@@ -790,42 +787,13 @@ async function loadAll(){
 
 /* ================= PAINEL ================= */
 function renderPainel(){
-  const criticos = casos.filter(c=> c.risco==='Crítico' && !['Concluído','Cancelado'].includes(c.status));
-  const listEl = document.getElementById('criticos-list');
-  listEl.innerHTML = criticos.length===0
-    ? `<div class="empty"><div class="big">✓</div>Nenhum caso crítico em aberto no momento.</div>`
-    : criticos.map(c=>fichaHTML(c, true)).join('');
+  // Prioridades críticas section removed; nothing to render here for now.
 }
 
 /* ================= CASOS ================= */
-function riscoClass(risco){ return 'risco-' + slug(risco === 'Crítico' ? 'critico' : risco); }
 function statusClass(status){
   const map = {'Não iniciado':'s-nao-iniciado','Em andamento':'s-em-andamento','Aguardando terceiros':'s-aguardando','Pendente':'s-pendente','Concluído':'s-concluido','Cancelado':'s-cancelado'};
   return map[status] || 's-nao-iniciado';
-}
-function fichaHTML(c, readonly){
-  return `
-  <div class="ficha ${riscoClass(c.risco)} ${readonly ? 'readonly' : ''}" data-id="${c.id}">
-    <div class="idnum mono">#${String(c.id).padStart(2,'0')}</div>
-    <div class="body">
-      <div class="cat">${c.categoria||''}</div>
-      <h3>${c.tema}</h3>
-      ${c.descricao ? `<div class="obs">${c.descricao}</div>` : ''}
-      <div class="meta">
-        <span>Risco: <strong>${c.risco}</strong></span>
-        ${c.responsavel ? `<span>Responsável: <strong>${c.responsavel}</strong></span>` : ''}
-        ${c.prazo ? `<span>Prazo: <strong>${fmtDate(c.prazo)}</strong></span>` : ''}
-      </div>
-      ${c.obs ? `<div class="obs" style="margin-top:8px; font-style:italic;">"${c.obs}"</div>` : ''}
-      ${auditHTML(c.created_by_nome, c.created_at, c.updated_by_nome, c.updated_at)}
-    </div>
-    <div class="stamp ${statusClass(c.status)}">${c.status}</div>
-  </div>`;
-}
-function attachFichaHandlers(container){
-  container.querySelectorAll('.ficha').forEach(el=>{
-    el.addEventListener('click', ()=> openCasoModal(parseInt(el.dataset.id)));
-  });
 }
 function renderCasos(){ renderBoard(); }
 function renderImoveis(){ renderBoard(); }
