@@ -58,10 +58,14 @@
   input:focus, select:focus, textarea:focus{ outline:2px solid var(--brass); outline-offset:1px; }
   .btn{
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding:11px 20px; border-radius:4px; border:1px solid var(--forest);
+    padding:11px 20px; border-radius:0; border:1px solid var(--forest);
     background:var(--forest); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
     font-family:'Source Sans 3', sans-serif; transition:background .15s ease;
   }
+  .audit-line{font-size:11px; color:var(--slate); font-style:italic; margin-top:8px;}
+  .file-preview{margin-top:8px;}
+  .file-preview img, .file-preview video{max-width:130px; max-height:110px; border:1px solid var(--line); display:block;}
+  .file-preview .file-icon{font-size:12.5px; color:var(--slate);}
   .btn:hover{background:var(--forest-dk);}
   .btn.ghost{background:transparent; color:var(--forest);}
   .btn.ghost:hover{background:rgba(46,64,52,0.06);}
@@ -170,7 +174,7 @@
   textarea{min-height:70px; resize:vertical; font-family:'Source Sans 3',sans-serif;}
 
   .imoveis-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
-  .im-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid var(--forest); cursor:pointer;}
+  .im-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid var(--brass); cursor:pointer;}
   .im-card h3{margin:0 0 6px; font-family:'Fraunces',serif; font-size:17px;}
   .im-card .status-line{margin-top:10px;}
 
@@ -183,6 +187,28 @@
   .yn.sim{background:#E4EEE6; color:var(--sage);}
   .yn.nao{background:#F3E6E4; color:var(--danger);}
   .file-badge{font-size:12px; color:var(--slate); font-family:'IBM Plex Mono',monospace;}
+
+  .subnav{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+  .subnav button{
+    padding:8px 16px; border-radius:20px; border:1px solid var(--line); background:#fff;
+    font-family:'Source Sans 3', sans-serif; font-size:13.5px; font-weight:600; color:var(--slate); cursor:pointer;
+  }
+  .subnav button.active{background:var(--forest); color:#fff; border-color:var(--forest);}
+  .subview{display:none;}
+  .subview.active{display:block;}
+
+  .dash-section{margin-top:40px; padding-top:28px; border-top:1px solid var(--line);}
+  .section-title{font-size:20px; margin:0; padding-left:14px; border-left:5px solid var(--forest);}
+  .dash-section-casos .section-title{border-left-color:var(--forest);}
+  .dash-section-imoveis .section-title{border-left-color:var(--brass);}
+  .dash-section-documentos .section-title{border-left-color:#5C7A9C;}
+
+  .docs-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
+  .doc-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid #5C7A9C; cursor:pointer;}
+  .doc-card h3{margin:0 0 8px; font-family:'Fraunces',serif; font-size:16px; line-height:1.3;}
+  .doc-card .doc-tipo{font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:#5C7A9C; font-weight:600; margin-bottom:6px;}
+  .doc-card .doc-meta{font-size:12.5px; color:var(--slate); margin-top:8px;}
+  .doc-card .doc-actions{margin-top:12px; display:flex; gap:8px;}
 
   .comments-box{margin-top:20px; border-top:1px solid var(--line); padding-top:16px;}
   .comments-box h4{font-size:13px; text-transform:uppercase; letter-spacing:.4px; color:var(--forest); margin:0 0 10px;}
@@ -301,10 +327,7 @@
   </header>
 
   <nav class="tabs">
-    <button data-view="painel" class="active">Painel Geral</button>
-    <button data-view="casos">Casos</button>
-    <button data-view="imoveis">Imóveis</button>
-    <button data-view="documentos">Documentos</button>
+    <button data-view="painel" class="active">Planilha</button>
     <button data-view="notas">Anotações</button>
     <button data-view="calendario">Calendário</button>
   </nav>
@@ -312,47 +335,41 @@
   <main>
     <section class="view active" id="view-painel">
       <div class="panel-head">
-        <div><h1 class="serif">Visão Geral</h1><p class="desc">Resumo de todos os temas em acompanhamento pela família.</p></div>
+        <div><h1 class="serif">Planilha</h1><p class="desc">Resumo de todos os temas em acompanhamento pela família.</p></div>
       </div>
       <div class="stat-grid" id="stat-grid"></div>
       <div class="panel-head"><div><h1 class="serif" style="font-size:19px;">Prioridades críticas</h1></div></div>
       <div class="cases" id="criticos-list"></div>
-    </section>
 
-    <section class="view" id="view-casos">
-      <div class="panel-head">
-        <div><h1 class="serif">Casos</h1><p class="desc">Temas patrimoniais, financeiros, contratuais e jurídicos em acompanhamento.</p></div>
-        <button class="btn" id="add-caso-btn">+ Novo caso</button>
+      <div class="dash-section dash-section-casos">
+        <div class="panel-head">
+          <div><h2 class="section-title serif">Casos</h2></div>
+          <button class="btn" id="add-caso-btn">+ Novo caso</button>
+        </div>
+        <div class="filters">
+          <div class="chip active" data-filter="todos">Todos</div>
+          <div class="chip" data-filter="abertos">Em aberto</div>
+          <div class="chip" data-filter="concluido">Concluídos</div>
+          <select id="cat-filter"><option value="">Todas as categorias</option></select>
+          <input type="text" id="search-casos" placeholder="Buscar por tema...">
+        </div>
+        <div class="cases" id="casos-list"></div>
       </div>
-      <div class="filters">
-        <div class="chip active" data-filter="todos">Todos</div>
-        <div class="chip" data-filter="abertos">Em aberto</div>
-        <div class="chip" data-filter="concluido">Concluídos</div>
-        <div class="chip" data-filter="cancelado">Cancelados</div>
-        <select id="cat-filter"><option value="">Todas as categorias</option></select>
-        <input type="text" id="search-casos" placeholder="Buscar por tema...">
-      </div>
-      <div class="cases" id="casos-list"></div>
-    </section>
 
-    <section class="view" id="view-imoveis">
-      <div class="panel-head">
-        <div><h1 class="serif">Imóveis</h1><p class="desc">Situação de ocupação, contratos e manutenção de cada bem.</p></div>
-        <button class="btn" id="add-imovel-btn">+ Novo imóvel</button>
+      <div class="dash-section dash-section-imoveis">
+        <div class="panel-head">
+          <div><h2 class="section-title serif">Imóveis</h2></div>
+          <button class="btn" id="add-imovel-btn">+ Novo imóvel</button>
+        </div>
+        <div class="imoveis-grid" id="imoveis-grid"></div>
       </div>
-      <div class="imoveis-grid" id="imoveis-grid"></div>
-    </section>
 
-    <section class="view" id="view-documentos">
-      <div class="panel-head">
-        <div><h1 class="serif">Documentos</h1><p class="desc">Envie e acompanhe os documentos necessários para cada item do painel.</p></div>
-        <button class="btn" id="add-doc-btn">+ Novo documento</button>
-      </div>
-      <div style="overflow-x:auto;">
-      <table class="doc-table">
-        <thead><tr><th>Documento</th><th>Tipo</th><th>Recebido?</th><th>Arquivo</th><th>Responsável</th><th style="text-align:right;">Ações</th></tr></thead>
-        <tbody id="doc-table-body"></tbody>
-      </table>
+      <div class="dash-section dash-section-documentos">
+        <div class="panel-head">
+          <div><h2 class="section-title serif">Documentos</h2></div>
+          <button class="btn" id="add-doc-btn">+ Novo documento</button>
+        </div>
+        <div class="docs-grid" id="docs-grid"></div>
       </div>
     </section>
 
@@ -370,6 +387,7 @@
           <label for="nota-foto-input" class="btn ghost small" style="cursor:pointer;">Selecionar arquivo</label>
           <input type="file" id="nota-foto-input" style="display:none;">
           <span class="file-badge" id="nota-foto-filename" style="margin-left:8px;">Nenhum arquivo selecionado</span>
+          <div class="file-preview" id="nota-foto-preview"></div>
         </div>
         <button class="btn small" id="add-nota-btn">Salvar observação</button>
       </div>
@@ -437,12 +455,17 @@
           <button type="submit" class="btn small">Salvar</button>
         </div>
       </div>
-      <div class="comments-box" id="comments-box" style="display:none;">
+      <div class="comments-box" id="comments-box-caso" style="display:none;">
         <h4>Comentários</h4>
-        <div id="comments-list"></div>
+        <div id="comments-list-caso"></div>
         <div class="comment-form">
-          <textarea id="new-comment" placeholder="Escreva um comentário..."></textarea>
-          <button type="button" class="btn small" id="add-comment-btn">Enviar</button>
+          <textarea id="new-comment-caso" placeholder="Escreva um comentário..."></textarea>
+          <button type="button" class="btn small" id="add-comment-caso-btn">Enviar</button>
+        </div>
+        <div style="margin-top:8px;">
+          <label for="comment-file-caso" class="btn ghost small" style="cursor:pointer;">📎 Anexar foto/vídeo/arquivo</label>
+          <input type="file" id="comment-file-caso" style="display:none;">
+          <span class="file-badge" id="comment-file-caso-name"></span>
         </div>
       </div>
     </form>
@@ -474,6 +497,19 @@
           <button type="submit" class="btn small">Salvar</button>
         </div>
       </div>
+      <div class="comments-box" id="comments-box-imovel" style="display:none;">
+        <h4>Comentários</h4>
+        <div id="comments-list-imovel"></div>
+        <div class="comment-form">
+          <textarea id="new-comment-imovel" placeholder="Escreva um comentário..."></textarea>
+          <button type="button" class="btn small" id="add-comment-imovel-btn">Enviar</button>
+        </div>
+        <div style="margin-top:8px;">
+          <label for="comment-file-imovel" class="btn ghost small" style="cursor:pointer;">📎 Anexar foto/vídeo/arquivo</label>
+          <input type="file" id="comment-file-imovel" style="display:none;">
+          <span class="file-badge" id="comment-file-imovel-name"></span>
+        </div>
+      </div>
     </form>
   </div>
 </div>
@@ -501,6 +537,7 @@
         <label for="doc-file-input" class="btn ghost small" style="cursor:pointer;">Selecionar arquivo</label>
         <input type="file" id="doc-file-input" style="display:none;">
         <span class="file-badge" id="doc-file-filename">Nenhum arquivo selecionado</span>
+        <div class="file-preview" id="doc-file-preview"></div>
         <div class="file-badge" id="doc-current-file" style="margin-top:6px;"></div>
       </div>
       <div class="field"><label>Observações / pendência</label><textarea id="doc-obs"></textarea></div>
@@ -509,6 +546,19 @@
         <div style="display:flex; gap:10px; margin-left:auto;">
           <button type="button" class="btn ghost small" id="cancel-doc-btn">Cancelar</button>
           <button type="submit" class="btn small" id="doc-save-btn">Salvar</button>
+        </div>
+      </div>
+      <div class="comments-box" id="comments-box-doc" style="display:none;">
+        <h4>Comentários</h4>
+        <div id="comments-list-doc"></div>
+        <div class="comment-form">
+          <textarea id="new-comment-doc" placeholder="Escreva um comentário..."></textarea>
+          <button type="button" class="btn small" id="add-comment-doc-btn">Enviar</button>
+        </div>
+        <div style="margin-top:8px;">
+          <label for="comment-file-doc" class="btn ghost small" style="cursor:pointer;">📎 Anexar foto/vídeo/arquivo</label>
+          <input type="file" id="comment-file-doc" style="display:none;">
+          <span class="file-badge" id="comment-file-doc-name"></span>
         </div>
       </div>
     </form>
@@ -581,6 +631,7 @@
         <label for="nota-edit-file-input" class="btn ghost small" style="cursor:pointer;">Selecionar arquivo</label>
         <input type="file" id="nota-edit-file-input" style="display:none;">
         <span class="file-badge" id="nota-edit-file-filename">Nenhum arquivo selecionado</span>
+        <div class="file-preview" id="nota-edit-file-preview"></div>
         <label style="display:flex; align-items:center; gap:6px; margin-top:8px; font-weight:400; text-transform:none; letter-spacing:0;">
           <input type="checkbox" id="nota-edit-remove-file" style="width:auto;"> Remover anexo atual
         </label>
@@ -627,6 +678,8 @@ let activeFilter = 'todos';
 let activeCat = '';
 let searchTerm = '';
 let editingCasoId = null;
+let editingImovelId = null;
+let editingDocId = null;
 let pendingFile = null;
 
 /* ================= UTIL ================= */
@@ -645,6 +698,25 @@ function fmtDate(d){
 function fmtDateTime(dt){
   const d = new Date(dt);
   return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+function auditHTML(createdBy, createdAt, updatedBy, updatedAt){
+  const parts = [];
+  if(createdBy) parts.push(`Criado por ${createdBy}${createdAt ? ' em '+fmtDateTime(createdAt) : ''}`);
+  if(updatedBy) parts.push(`Editado por ${updatedBy}${updatedAt ? ' em '+fmtDateTime(updatedAt) : ''}`);
+  return parts.length ? `<div class="audit-line">${parts.join(' · ')}</div>` : '';
+}
+function showFilePreview(file, previewElId){
+  const el = document.getElementById(previewElId);
+  if(!el) return;
+  if(!file){ el.innerHTML = ''; return; }
+  const mime = file.type || '';
+  if(mime.startsWith('image/')){
+    el.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Pré-visualização">`;
+  } else if(mime.startsWith('video/')){
+    el.innerHTML = `<video src="${URL.createObjectURL(file)}" muted></video>`;
+  } else {
+    el.innerHTML = `<div class="file-icon">📄 ${file.name}</div>`;
+  }
 }
 
 /* ================= AUTH ================= */
@@ -770,6 +842,7 @@ function fichaHTML(c, readonly){
         ${c.prazo ? `<span>Prazo: <strong>${fmtDate(c.prazo)}</strong></span>` : ''}
       </div>
       ${c.obs ? `<div class="obs" style="margin-top:8px; font-style:italic;">"${c.obs}"</div>` : ''}
+      ${auditHTML(c.created_by_nome, c.created_at, c.updated_by_nome, c.updated_at)}
     </div>
     <div class="stamp ${statusClass(c.status)}">${c.status}</div>
   </div>`;
@@ -821,7 +894,7 @@ async function openCasoModal(id){
   const isNew = !id;
   document.getElementById('caso-modal-title').textContent = isNew ? 'Novo caso' : 'Editar caso';
   document.getElementById('delete-caso-btn').style.display = isNew ? 'none' : 'inline-flex';
-  document.getElementById('comments-box').style.display = isNew ? 'none' : 'block';
+  document.getElementById('comments-box-caso').style.display = isNew ? 'none' : 'block';
   const c = isNew ? {id:'',tema:'',categoria:'Financeiro',descricao:'',risco:'Alta',status:'Não iniciado',responsavel:'',prazo:'',obs:''} : casos.find(x=>x.id===id);
   document.getElementById('caso-id').value = c.id;
   document.getElementById('caso-tema').value = c.tema || '';
@@ -833,7 +906,7 @@ async function openCasoModal(id){
   document.getElementById('caso-prazo').value = c.prazo || '';
   document.getElementById('caso-obs').value = c.obs || '';
   overlay.classList.add('active');
-  if(!isNew) await loadComments(id);
+  if(!isNew) await loadCommentsGeneric('caso_id', id, 'comments-list-caso');
 }
 document.getElementById('add-caso-btn').addEventListener('click', ()=> openCasoModal(null));
 document.getElementById('cancel-caso-btn').addEventListener('click', ()=> document.getElementById('caso-overlay').classList.remove('active'));
@@ -855,11 +928,17 @@ document.getElementById('caso-form').addEventListener('submit', async (e)=>{
     obs: document.getElementById('caso-obs').value.trim(),
     updated_at: new Date().toISOString(),
   };
+  let err;
   if(idVal){
-    await sb.from('casos').update(data).eq('id', idVal);
+    data.updated_by_nome = currentProfile.nome;
+    const r = await sb.from('casos').update(data).eq('id', idVal);
+    err = r.error;
   } else {
-    await sb.from('casos').insert(data);
+    data.created_by_nome = currentProfile.nome;
+    const r = await sb.from('casos').insert(data);
+    err = r.error;
   }
+  if(err){ toast('Erro ao salvar: ' + err.message); return; }
   await loadAll();
   document.getElementById('caso-overlay').classList.remove('active');
   renderPainel(); renderCasos(); populateNotaCasoSelect();
@@ -875,22 +954,79 @@ document.getElementById('delete-caso-btn').addEventListener('click', async ()=>{
   toast('Caso excluído.');
 });
 
-async function loadComments(casoId){
-  const { data } = await sb.from('comentarios').select('*').eq('caso_id', casoId).order('created_at');
-  const list = document.getElementById('comments-list');
+/* ================= COMENTÁRIOS (genérico: casos, imóveis, documentos) ================= */
+const pendingCommentFile = { caso: null, imovel: null, doc: null };
+
+function attachmentPreviewInComment(cm){
+  if(!cm.anexo_path) return '';
+  return `<div class="file-preview" data-comment-attach="${cm.id}" data-comment-path="${cm.anexo_path}" data-comment-mime="${cm.anexo_mime||''}"></div>`;
+}
+async function loadCommentsGeneric(field, id, listElId){
+  const { data, error } = await sb.from('comentarios').select('*').eq(field, id).order('created_at');
+  const list = document.getElementById(listElId);
+  if(error){ list.innerHTML = `<div style="font-size:13px;color:var(--danger);">Erro ao carregar comentários: ${error.message}</div>`; return; }
   list.innerHTML = (data||[]).length===0
     ? `<div style="font-size:13px;color:var(--slate);">Nenhum comentário ainda.</div>`
-    : data.map(cm=>`<div class="comment"><div class="meta">${cm.autor_nome||'—'} · ${fmtDateTime(cm.created_at)}</div>${cm.texto}</div>`).join('');
-}
-document.getElementById('add-comment-btn').addEventListener('click', async ()=>{
-  const texto = document.getElementById('new-comment').value.trim();
-  if(!texto || !editingCasoId) return;
-  await sb.from('comentarios').insert({
-    caso_id: editingCasoId, autor: currentProfile.id, autor_nome: currentProfile.nome, texto
+    : data.map(cm=>`<div class="comment">
+        <div class="meta">${cm.autor_nome||'—'} · ${fmtDateTime(cm.created_at)}</div>
+        ${cm.texto ? cm.texto : ''}
+        ${attachmentPreviewInComment(cm)}
+      </div>`).join('');
+  list.querySelectorAll('[data-comment-attach]').forEach(async (el)=>{
+    const path = el.dataset.commentPath;
+    const mime = el.dataset.commentMime || '';
+    const { data: signed } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(path, 300);
+    if(!signed) return;
+    if(mime.startsWith('image/')){
+      el.innerHTML = `<img src="${signed.signedUrl}" alt="">`;
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', ()=> window.open(signed.signedUrl, '_blank'));
+    } else if(mime.startsWith('video/')){
+      el.innerHTML = `<video src="${signed.signedUrl}" controls></video>`;
+    } else {
+      el.innerHTML = `<span style="font-size:12px; color:var(--brass); text-decoration:underline; cursor:pointer;">📎 Baixar anexo</span>`;
+      el.addEventListener('click', ()=> window.open(signed.signedUrl, '_blank'));
+    }
   });
-  document.getElementById('new-comment').value = '';
-  await loadComments(editingCasoId);
-});
+}
+async function postCommentGeneric(field, id, texto, file, listElId){
+  if(!texto && !file) return;
+  const payload = { autor: currentProfile.id, autor_nome: currentProfile.nome, texto: texto || null, [field]: id };
+  if(file){
+    const path = `comentarios/${Date.now()}_${file.name}`.replace(/\s+/g,'_');
+    const { error: upErr } = await sb.storage.from(DOCS_BUCKET).upload(path, file, { upsert:false });
+    if(upErr){ toast('Erro ao enviar anexo.'); return; }
+    payload.anexo_path = path;
+    payload.anexo_mime = file.type;
+  }
+  const { error } = await sb.from('comentarios').insert(payload);
+  if(error){ toast('Erro ao comentar: ' + error.message); return; }
+  await loadCommentsGeneric(field, id, listElId);
+}
+function wireCommentForm(key, field, getId, textareaId, btnId, fileInputId, fileNameId, listElId){
+  document.getElementById(fileInputId).addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; return; }
+    pendingCommentFile[key] = file;
+    document.getElementById(fileNameId).textContent = file.name;
+  });
+  document.getElementById(btnId).addEventListener('click', async ()=>{
+    const id = getId();
+    if(!id) return;
+    const textarea = document.getElementById(textareaId);
+    const texto = textarea.value.trim();
+    const file = pendingCommentFile[key];
+    await postCommentGeneric(field, id, texto, file, listElId);
+    textarea.value = '';
+    document.getElementById(fileInputId).value = '';
+    document.getElementById(fileNameId).textContent = '';
+    pendingCommentFile[key] = null;
+  });
+}
+wireCommentForm('caso', 'caso_id', ()=>editingCasoId, 'new-comment-caso', 'add-comment-caso-btn', 'comment-file-caso', 'comment-file-caso-name', 'comments-list-caso');
+wireCommentForm('imovel', 'imovel_id', ()=>editingImovelId, 'new-comment-imovel', 'add-comment-imovel-btn', 'comment-file-imovel', 'comment-file-imovel-name', 'comments-list-imovel');
+wireCommentForm('doc', 'documento_id', ()=>editingDocId, 'new-comment-doc', 'add-comment-doc-btn', 'comment-file-doc', 'comment-file-doc-name', 'comments-list-doc');
 
 /* ================= IMOVEIS ================= */
 function renderImoveis(){
@@ -903,6 +1039,7 @@ function renderImoveis(){
       ${im.situacao ? `<div class="obs" style="color:var(--slate); font-size:13px;">${im.situacao}</div>` : ''}
       ${im.responsavel ? `<div class="obs" style="color:var(--slate); font-size:12.5px; margin-top:4px;">Responsável: ${im.responsavel}</div>` : ''}
       ${im.obs ? `<div class="obs" style="margin-top:8px; font-size:13px;">${im.obs}</div>` : ''}
+      ${auditHTML(im.created_by_nome, im.created_at, im.updated_by_nome, im.updated_at)}
       <div class="status-line"><span class="stamp ${statusClass(im.status)}">${im.status}</span></div>
     </div>`).join('');
   grid.querySelectorAll('.im-card').forEach(el=>{
@@ -910,10 +1047,12 @@ function renderImoveis(){
   });
 }
 function openImovelModal(id){
+  editingImovelId = id || null;
   const overlay = document.getElementById('imovel-overlay');
   const isNew = !id;
   document.getElementById('imovel-modal-title').textContent = isNew ? 'Novo imóvel' : 'Editar imóvel';
   document.getElementById('delete-imovel-btn').style.display = isNew ? 'none' : 'inline-flex';
+  document.getElementById('comments-box-imovel').style.display = isNew ? 'none' : 'block';
   const im = isNew ? {id:'',nome:'',situacao:'',status:'Não iniciado',responsavel:'',obs:''} : imoveis.find(x=>x.id===id);
   document.getElementById('imovel-id').value = im.id;
   document.getElementById('imovel-nome').value = im.nome || '';
@@ -922,6 +1061,7 @@ function openImovelModal(id){
   document.getElementById('imovel-responsavel').value = im.responsavel || '';
   document.getElementById('imovel-obs').value = im.obs || '';
   overlay.classList.add('active');
+  if(!isNew) loadCommentsGeneric('imovel_id', id, 'comments-list-imovel');
 }
 document.getElementById('add-imovel-btn').addEventListener('click', ()=> openImovelModal(null));
 document.getElementById('cancel-imovel-btn').addEventListener('click', ()=> document.getElementById('imovel-overlay').classList.remove('active'));
@@ -936,8 +1076,17 @@ document.getElementById('imovel-form').addEventListener('submit', async (e)=>{
     obs: document.getElementById('imovel-obs').value.trim(),
     updated_at: new Date().toISOString(),
   };
-  if(idVal){ await sb.from('imoveis').update(data).eq('id', idVal); }
-  else{ await sb.from('imoveis').insert(data); }
+  let err;
+  if(idVal){
+    data.updated_by_nome = currentProfile.nome;
+    const r = await sb.from('imoveis').update(data).eq('id', idVal);
+    err = r.error;
+  } else {
+    data.created_by_nome = currentProfile.nome;
+    const r = await sb.from('imoveis').insert(data);
+    err = r.error;
+  }
+  if(err){ toast('Erro ao salvar: ' + err.message); return; }
   await loadAll();
   document.getElementById('imovel-overlay').classList.remove('active');
   renderImoveis();
@@ -955,29 +1104,35 @@ document.getElementById('delete-imovel-btn').addEventListener('click', async ()=
 
 /* ================= DOCUMENTOS ================= */
 function renderDocs(){
-  const body = document.getElementById('doc-table-body');
-  body.innerHTML = docs.length===0
-    ? `<tr><td colspan="6" style="text-align:center; color:var(--slate); padding:30px;">Nenhum documento cadastrado.</td></tr>`
+  const grid = document.getElementById('docs-grid');
+  grid.innerHTML = docs.length===0
+    ? `<div class="empty"><div class="big">—</div>Nenhum documento cadastrado.</div>`
     : docs.map(d=>`
-    <tr class="doc-row" data-id="${d.id}" style="cursor:pointer;">
-      <td class="doc-name">${d.nome}</td>
-      <td>${d.tipo||'—'}</td>
-      <td><span class="yn ${d.recebido?'sim':'nao'}">${d.recebido?'Sim':'Não'}</span></td>
-      <td class="file-badge">${d.storage_path ? '📎 '+d.file_name : '— sem arquivo —'}</td>
-      <td>${d.responsavel || '—'}</td>
-      <td style="text-align:right; white-space:nowrap;">
+    <div class="doc-card" data-id="${d.id}">
+      <div class="doc-tipo">${d.tipo||'—'}</div>
+      <h3>${d.nome}</h3>
+      <span class="yn ${d.recebido?'sim':'nao'}">${d.recebido?'Recebido':'Não recebido'}</span>
+      ${d.storage_path && (d.file_mime||'').startsWith('image/') ? `<div class="file-preview"><img data-thumb-path="${d.storage_path}" alt=""></div>` : ''}
+      <div class="doc-meta">${d.storage_path ? '📎 '+d.file_name : '— sem arquivo —'}</div>
+      ${d.responsavel ? `<div class="doc-meta">Responsável: ${d.responsavel}</div>` : ''}
+      ${auditHTML(d.uploaded_by_nome, d.created_at, d.updated_by_nome, d.updated_at)}
+      <div class="doc-actions">
         ${d.storage_path ? `<button class="btn ghost small" data-download="${d.id}">Baixar</button>` : ''}
         <button class="btn ghost small" data-edit="${d.id}">Editar</button>
-      </td>
-    </tr>`).join('');
-  body.querySelectorAll('.doc-row').forEach(row=>{
-    row.addEventListener('click', (e)=>{
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('[data-thumb-path]').forEach(async (img)=>{
+    const { data } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(img.dataset.thumbPath, 300);
+    if(data) img.src = data.signedUrl;
+  });
+  grid.querySelectorAll('.doc-card').forEach(card=>{
+    card.addEventListener('click', (e)=>{
       if(e.target.closest('button')) return;
-      openDocModal(parseInt(row.dataset.id));
+      openDocModal(parseInt(card.dataset.id));
     });
   });
-  body.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); openDocModal(parseInt(btn.dataset.edit)); }));
-  body.querySelectorAll('[data-download]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); downloadDoc(parseInt(btn.dataset.download)); }));
+  grid.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); openDocModal(parseInt(btn.dataset.edit)); }));
+  grid.querySelectorAll('[data-download]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); downloadDoc(parseInt(btn.dataset.download)); }));
 }
 async function downloadDoc(id){
   const meta = docs.find(d=>d.id===id);
@@ -989,8 +1144,10 @@ async function downloadDoc(id){
 function openDocModal(id){
   const overlay = document.getElementById('doc-overlay');
   const isNew = !id;
+  editingDocId = id || null;
   document.getElementById('doc-modal-title').textContent = isNew ? 'Novo documento' : 'Editar documento';
   document.getElementById('delete-doc-btn').style.display = isNew ? 'none' : 'inline-flex';
+  document.getElementById('comments-box-doc').style.display = isNew ? 'none' : 'block';
   const d = isNew ? {id:'',nome:'',tipo:'Financeiro',recebido:false,responsavel:'',obs:'',storage_path:null,file_name:''} : docs.find(x=>x.id===id);
   document.getElementById('doc-id').value = d.id;
   document.getElementById('doc-nome').value = d.nome || '';
@@ -1000,9 +1157,11 @@ function openDocModal(id){
   document.getElementById('doc-obs').value = d.obs || '';
   document.getElementById('doc-file-input').value = '';
   document.getElementById('doc-file-filename').textContent = d.storage_path ? d.file_name : 'Nenhum arquivo selecionado';
+  document.getElementById('doc-file-preview').innerHTML = '';
   document.getElementById('doc-current-file').textContent = d.storage_path ? ('Arquivo atual: '+d.file_name) : '';
   pendingFile = null;
   overlay.classList.add('active');
+  if(!isNew) loadCommentsGeneric('documento_id', id, 'comments-list-doc');
 }
 document.getElementById('add-doc-btn').addEventListener('click', ()=> openDocModal(null));
 document.getElementById('cancel-doc-btn').addEventListener('click', ()=> document.getElementById('doc-overlay').classList.remove('active'));
@@ -1012,6 +1171,7 @@ document.getElementById('doc-file-input').addEventListener('change', (e)=>{
   if(file.size > 40*1024*1024){ toast('Arquivo muito grande (máx. 40 MB).'); e.target.value=''; document.getElementById('doc-file-filename').textContent='Nenhum arquivo selecionado'; return; }
   pendingFile = file;
   document.getElementById('doc-file-filename').textContent = file.name;
+  showFilePreview(file, 'doc-file-preview');
 });
 document.getElementById('doc-form').addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -1036,8 +1196,18 @@ document.getElementById('doc-form').addEventListener('submit', async (e)=>{
       data.file_mime = pendingFile.type;
       data.uploaded_by = currentProfile.id;
     }
-    if(targetId){ await sb.from('documentos').update(data).eq('id', targetId); }
-    else{ await sb.from('documentos').insert(data); }
+    let err;
+    if(targetId){
+      data.updated_at = new Date().toISOString();
+      data.updated_by_nome = currentProfile.nome;
+      const r = await sb.from('documentos').update(data).eq('id', targetId);
+      err = r.error;
+    } else {
+      data.uploaded_by_nome = currentProfile.nome;
+      const r = await sb.from('documentos').insert(data);
+      err = r.error;
+    }
+    if(err){ toast('Erro ao salvar: ' + err.message); return; }
     await loadAll();
     document.getElementById('doc-overlay').classList.remove('active');
     renderDocs();
@@ -1146,6 +1316,7 @@ function openNotaEditModal(id){
   document.getElementById('nota-edit-current-file').textContent = n.foto_path ? ('Arquivo atual: '+n.foto_path.split('/').pop()) : 'Nenhum anexo';
   document.getElementById('nota-edit-file-input').value = '';
   document.getElementById('nota-edit-file-filename').textContent = 'Nenhum arquivo selecionado';
+  document.getElementById('nota-edit-file-preview').innerHTML = '';
   document.getElementById('nota-edit-remove-file').checked = false;
   pendingNotaEditFile = null;
   removeNotaEditFile = false;
@@ -1158,6 +1329,7 @@ document.getElementById('nota-edit-file-input').addEventListener('change', (e)=>
   if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; document.getElementById('nota-edit-file-filename').textContent='Nenhum arquivo selecionado'; return; }
   pendingNotaEditFile = file;
   document.getElementById('nota-edit-file-filename').textContent = file.name;
+  showFilePreview(file, 'nota-edit-file-preview');
 });
 document.getElementById('nota-edit-remove-file').addEventListener('change', (e)=>{
   removeNotaEditFile = e.target.checked;
@@ -1215,6 +1387,7 @@ document.getElementById('nota-foto-input').addEventListener('change', (e)=>{
   if(file.size > 45*1024*1024){ toast('Arquivo muito grande (máx. 45 MB).'); e.target.value=''; document.getElementById('nota-foto-filename').textContent='Nenhum arquivo selecionado'; return; }
   pendingNotaFoto = file;
   document.getElementById('nota-foto-filename').textContent = file.name;
+  showFilePreview(file, 'nota-foto-preview');
 });
 document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   const texto = document.getElementById('nota-texto').value.trim();
@@ -1238,6 +1411,7 @@ document.getElementById('add-nota-btn').addEventListener('click', async ()=>{
   document.getElementById('nota-texto').value = '';
   document.getElementById('nota-foto-input').value = '';
   document.getElementById('nota-foto-filename').textContent = 'Nenhum arquivo selecionado';
+  document.getElementById('nota-foto-preview').innerHTML = '';
   document.getElementById('nota-caso').value = '';
   pendingNotaFoto = null;
   const { data: n } = await sb.from('notas').select('*').order('data',{ascending:false}).order('created_at',{ascending:false});
@@ -1317,7 +1491,7 @@ function attachAgendaHandlers(container){
       const evId = el.dataset.eventoId;
       const casoId = el.dataset.casoId;
       if(evId){ openEventoModal(parseInt(evId)); }
-      else if(casoId){ showView('casos'); openCasoModal(parseInt(casoId)); }
+      else if(casoId){ showView('painel'); openCasoModal(parseInt(casoId)); }
     });
   });
 }
@@ -1443,6 +1617,7 @@ function showView(name){
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
   btn.addEventListener('click', ()=> showView(btn.dataset.view));
 });
+
 </script>
 </body>
 </html>
