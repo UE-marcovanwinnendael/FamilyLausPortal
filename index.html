@@ -203,6 +203,15 @@
   .dash-section-imoveis .section-title{border-left-color:var(--brass);}
   .dash-section-documentos .section-title{border-left-color:#5C7A9C;}
 
+  .board-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px;}
+  .board-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid var(--slate); cursor:pointer;}
+  .board-card:hover{box-shadow:0 4px 14px -8px rgba(30,42,34,0.4);}
+  .board-card h3{margin:8px 0 6px; font-family:'Fraunces',serif; font-size:16px; line-height:1.3;}
+  .board-tag{display:inline-block; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; font-weight:700; padding:2px 8px; border:1.5px solid;}
+  .board-card .obs{color:var(--slate); font-size:13px; margin-top:2px;}
+  .board-card .meta{font-size:12px; color:var(--slate); margin-top:8px; display:flex; flex-direction:column; gap:2px;}
+  .board-card .status-line{margin-top:10px;}
+
   .docs-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
   .doc-card{background:var(--card); border:1px solid var(--line); border-radius:6px; padding:18px; border-top:4px solid #5C7A9C; cursor:pointer;}
   .doc-card h3{margin:0 0 8px; font-family:'Fraunces',serif; font-size:16px; line-height:1.3;}
@@ -337,39 +346,19 @@
       <div class="panel-head">
         <div><h1 class="serif">Planilha</h1><p class="desc">Resumo de todos os temas em acompanhamento pela família.</p></div>
       </div>
-      <div class="stat-grid" id="stat-grid"></div>
       <div class="panel-head"><div><h1 class="serif" style="font-size:19px;">Prioridades críticas</h1></div></div>
       <div class="cases" id="criticos-list"></div>
 
-      <div class="dash-section dash-section-casos">
+      <div class="dash-section">
         <div class="panel-head">
-          <div><h2 class="section-title serif">Casos</h2></div>
-          <button class="btn" id="add-caso-btn">+ Novo caso</button>
+          <div><h2 class="section-title serif">Assuntos</h2></div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" id="add-caso-btn">+ Assunto</button>
+            <button class="btn ghost" id="add-imovel-btn">+ Imóvel</button>
+            <button class="btn ghost" id="add-doc-btn">+ Documento</button>
+          </div>
         </div>
-        <div class="filters">
-          <div class="chip active" data-filter="todos">Todos</div>
-          <div class="chip" data-filter="abertos">Em aberto</div>
-          <div class="chip" data-filter="concluido">Concluídos</div>
-          <select id="cat-filter"><option value="">Todas as categorias</option></select>
-          <input type="text" id="search-casos" placeholder="Buscar por tema...">
-        </div>
-        <div class="cases" id="casos-list"></div>
-      </div>
-
-      <div class="dash-section dash-section-imoveis">
-        <div class="panel-head">
-          <div><h2 class="section-title serif">Imóveis</h2></div>
-          <button class="btn" id="add-imovel-btn">+ Novo imóvel</button>
-        </div>
-        <div class="imoveis-grid" id="imoveis-grid"></div>
-      </div>
-
-      <div class="dash-section dash-section-documentos">
-        <div class="panel-head">
-          <div><h2 class="section-title serif">Documentos</h2></div>
-          <button class="btn" id="add-doc-btn">+ Novo documento</button>
-        </div>
-        <div class="docs-grid" id="docs-grid"></div>
+        <div class="board-grid" id="board-grid"></div>
       </div>
     </section>
 
@@ -421,7 +410,7 @@
 <!-- MODAL: caso -->
 <div class="overlay" id="caso-overlay">
   <div class="modal">
-    <h2 class="serif" id="caso-modal-title">Novo caso</h2>
+    <h2 class="serif" id="caso-modal-title">Novo assunto</h2>
     <form id="caso-form">
       <input type="hidden" id="caso-id">
       <div class="field"><label>Tema</label><input type="text" id="caso-tema" required placeholder="Ex: Contrato de locação Bella Sintra"></div>
@@ -539,6 +528,7 @@
         <span class="file-badge" id="doc-file-filename">Nenhum arquivo selecionado</span>
         <div class="file-preview" id="doc-file-preview"></div>
         <div class="file-badge" id="doc-current-file" style="margin-top:6px;"></div>
+        <button type="button" class="btn ghost small" id="doc-download-btn" style="display:none; margin-top:8px;">Baixar arquivo atual</button>
       </div>
       <div class="field"><label>Observações / pendência</label><textarea id="doc-obs"></textarea></div>
       <div class="modal-actions">
@@ -674,9 +664,6 @@ let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let selectedDay = null;
 let pendingNotaFoto = null;
-let activeFilter = 'todos';
-let activeCat = '';
-let searchTerm = '';
 let editingCasoId = null;
 let editingImovelId = null;
 let editingDocId = null;
@@ -803,19 +790,7 @@ async function loadAll(){
 
 /* ================= PAINEL ================= */
 function renderPainel(){
-  const total = casos.length;
-  const concluidos = casos.filter(c=>c.status==='Concluído').length;
-  const emAndamento = casos.filter(c=>c.status==='Em andamento').length;
-  const abertos = casos.filter(c=>!['Concluído','Cancelado'].includes(c.status)).length;
   const criticos = casos.filter(c=> c.risco==='Crítico' && !['Concluído','Cancelado'].includes(c.status));
-
-  document.getElementById('stat-grid').innerHTML = `
-    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total de casos</div></div>
-    <div class="stat-card alerta"><div class="num">${abertos}</div><div class="lbl">Em aberto</div></div>
-    <div class="stat-card ok"><div class="num">${emAndamento}</div><div class="lbl">Em andamento</div></div>
-    <div class="stat-card critico"><div class="num">${criticos.length}</div><div class="lbl">Prioridade crítica</div></div>
-    <div class="stat-card ok"><div class="num">${concluidos}</div><div class="lbl">Concluídos</div></div>
-  `;
   const listEl = document.getElementById('criticos-list');
   listEl.innerHTML = criticos.length===0
     ? `<div class="empty"><div class="big">✓</div>Nenhum caso crítico em aberto no momento.</div>`
@@ -852,47 +827,89 @@ function attachFichaHandlers(container){
     el.addEventListener('click', ()=> openCasoModal(parseInt(el.dataset.id)));
   });
 }
-function renderCasos(){
-  const catSel = document.getElementById('cat-filter');
-  const cats = [...new Set(casos.map(c=>c.categoria).filter(Boolean))].sort();
-  const keep = catSel.value;
-  catSel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
-  catSel.value = activeCat;
+function renderCasos(){ renderBoard(); }
+function renderImoveis(){ renderBoard(); }
+function renderDocs(){ renderBoard(); }
 
-  let filtered = casos.slice();
-  if(activeFilter==='abertos') filtered = filtered.filter(c=>!['Concluído','Cancelado'].includes(c.status));
-  if(activeFilter==='concluido') filtered = filtered.filter(c=>c.status==='Concluído');
-  if(activeFilter==='cancelado') filtered = filtered.filter(c=>c.status==='Cancelado');
-  if(activeCat) filtered = filtered.filter(c=>c.categoria===activeCat);
-  if(searchTerm) filtered = filtered.filter(c=> ((c.tema||'')+(c.descricao||'')).toLowerCase().includes(searchTerm.toLowerCase()));
-
-  const order = {'Crítico':0,'Alta':1,'Média':2,'Baixa':3};
-  filtered.sort((a,b)=> (order[a.risco]??9) - (order[b.risco]??9) || a.id-b.id);
-
-  const listEl = document.getElementById('casos-list');
-  listEl.innerHTML = filtered.length===0
-    ? `<div class="empty"><div class="big">—</div>Nenhum caso encontrado com esses filtros.</div>`
-    : filtered.map(fichaHTML).join('');
-  attachFichaHandlers(listEl);
-}
-
-document.querySelectorAll('.chip').forEach(chip=>{
-  chip.addEventListener('click', ()=>{
-    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-    chip.classList.add('active');
-    activeFilter = chip.dataset.filter;
-    renderCasos();
+function buildBoardItems(){
+  const items = [];
+  casos.forEach(c=>{
+    const meta = [];
+    meta.push(`Risco: ${c.risco}`);
+    if(c.responsavel) meta.push(`Responsável: ${c.responsavel}`);
+    if(c.prazo) meta.push(`Prazo: ${fmtDate(c.prazo)}`);
+    items.push({
+      type:'caso', id:c.id, tag:'Assunto', tagColor:'var(--forest)',
+      title:c.tema, subtitle:c.descricao, meta: meta.join(' · '),
+      status:c.status, statusClass:statusClass(c.status),
+      audit: auditHTML(c.created_by_nome, c.created_at, c.updated_by_nome, c.updated_at),
+      updated: c.updated_at || c.created_at
+    });
   });
-});
-document.getElementById('cat-filter').addEventListener('change', (e)=>{ activeCat = e.target.value; renderCasos(); });
-document.getElementById('search-casos').addEventListener('input', (e)=>{ searchTerm = e.target.value; renderCasos(); });
+  imoveis.forEach(im=>{
+    const meta = [];
+    if(im.responsavel) meta.push(`Responsável: ${im.responsavel}`);
+    items.push({
+      type:'imovel', id:im.id, tag:'Imóvel', tagColor:'var(--brass)',
+      title:im.nome, subtitle: im.situacao || im.obs, meta: meta.join(' · '),
+      status:im.status, statusClass:statusClass(im.status),
+      audit: auditHTML(im.created_by_nome, im.created_at, im.updated_by_nome, im.updated_at),
+      updated: im.updated_at || im.created_at
+    });
+  });
+  docs.forEach(d=>{
+    const meta = [];
+    meta.push(d.storage_path ? ('📎 '+d.file_name) : '— sem arquivo —');
+    if(d.responsavel) meta.push(`Responsável: ${d.responsavel}`);
+    items.push({
+      type:'documento', id:d.id, tag:'Documento', tagColor:'#5C7A9C',
+      title:d.nome, subtitle:d.tipo, meta: meta.join(' · '),
+      status: d.recebido ? 'Recebido' : 'Não recebido', statusClass: d.recebido ? 's-concluido' : 's-pendente',
+      audit: auditHTML(d.uploaded_by_nome, d.created_at, d.updated_by_nome, d.updated_at),
+      thumbPath: (d.file_mime||'').startsWith('image/') ? d.storage_path : null,
+      updated: d.updated_at || d.created_at
+    });
+  });
+  items.sort((a,b)=> new Date(b.updated||0) - new Date(a.updated||0));
+  return items;
+}
+function boardCardHTML(it){
+  return `<div class="board-card" data-type="${it.type}" data-id="${it.id}" style="border-top-color:${it.tagColor};">
+    <span class="board-tag" style="color:${it.tagColor}; border-color:${it.tagColor};">${it.tag}</span>
+    <h3>${it.title}</h3>
+    ${it.subtitle ? `<div class="obs">${it.subtitle}</div>` : ''}
+    ${it.thumbPath ? `<div class="file-preview"><img data-thumb-path="${it.thumbPath}" alt=""></div>` : ''}
+    ${it.meta ? `<div class="meta">${it.meta}</div>` : ''}
+    ${it.audit || ''}
+    <div class="status-line"><span class="stamp ${it.statusClass}">${it.status}</span></div>
+  </div>`;
+}
+function renderBoard(){
+  const grid = document.getElementById('board-grid');
+  const items = buildBoardItems();
+  grid.innerHTML = items.length===0
+    ? `<div class="empty"><div class="big">—</div>Nenhum assunto, imóvel ou documento cadastrado ainda.</div>`
+    : items.map(boardCardHTML).join('');
+  grid.querySelectorAll('[data-thumb-path]').forEach(async (img)=>{
+    const { data } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(img.dataset.thumbPath, 300);
+    if(data) img.src = data.signedUrl;
+  });
+  grid.querySelectorAll('.board-card').forEach(card=>{
+    card.addEventListener('click', ()=>{
+      const type = card.dataset.type, id = parseInt(card.dataset.id);
+      if(type==='caso') openCasoModal(id);
+      else if(type==='imovel') openImovelModal(id);
+      else openDocModal(id);
+    });
+  });
+}
 
 /* ---- caso modal + comentarios ---- */
 async function openCasoModal(id){
   editingCasoId = id || null;
   const overlay = document.getElementById('caso-overlay');
   const isNew = !id;
-  document.getElementById('caso-modal-title').textContent = isNew ? 'Novo caso' : 'Editar caso';
+  document.getElementById('caso-modal-title').textContent = isNew ? 'Novo assunto' : 'Editar assunto';
   document.getElementById('delete-caso-btn').style.display = isNew ? 'none' : 'inline-flex';
   document.getElementById('comments-box-caso').style.display = isNew ? 'none' : 'block';
   const c = isNew ? {id:'',tema:'',categoria:'Financeiro',descricao:'',risco:'Alta',status:'Não iniciado',responsavel:'',prazo:'',obs:''} : casos.find(x=>x.id===id);
@@ -942,16 +959,16 @@ document.getElementById('caso-form').addEventListener('submit', async (e)=>{
   await loadAll();
   document.getElementById('caso-overlay').classList.remove('active');
   renderPainel(); renderCasos(); populateNotaCasoSelect();
-  toast('Caso salvo.');
+  toast('Assunto salvo.');
 });
 document.getElementById('delete-caso-btn').addEventListener('click', async ()=>{
   const idVal = parseInt(document.getElementById('caso-id').value);
-  if(!confirm('Excluir este caso? Esta ação não pode ser desfeita.')) return;
+  if(!confirm('Excluir este assunto? Esta ação não pode ser desfeita.')) return;
   await sb.from('casos').delete().eq('id', idVal);
   await loadAll();
   document.getElementById('caso-overlay').classList.remove('active');
   renderPainel(); renderCasos(); populateNotaCasoSelect();
-  toast('Caso excluído.');
+  toast('Assunto excluído.');
 });
 
 /* ================= COMENTÁRIOS (genérico: casos, imóveis, documentos) ================= */
@@ -1029,23 +1046,6 @@ wireCommentForm('imovel', 'imovel_id', ()=>editingImovelId, 'new-comment-imovel'
 wireCommentForm('doc', 'documento_id', ()=>editingDocId, 'new-comment-doc', 'add-comment-doc-btn', 'comment-file-doc', 'comment-file-doc-name', 'comments-list-doc');
 
 /* ================= IMOVEIS ================= */
-function renderImoveis(){
-  const grid = document.getElementById('imoveis-grid');
-  grid.innerHTML = imoveis.length===0
-    ? `<div class="empty"><div class="big">—</div>Nenhum imóvel cadastrado.</div>`
-    : imoveis.map(im=>`
-    <div class="im-card" data-id="${im.id}">
-      <h3>${im.nome}</h3>
-      ${im.situacao ? `<div class="obs" style="color:var(--slate); font-size:13px;">${im.situacao}</div>` : ''}
-      ${im.responsavel ? `<div class="obs" style="color:var(--slate); font-size:12.5px; margin-top:4px;">Responsável: ${im.responsavel}</div>` : ''}
-      ${im.obs ? `<div class="obs" style="margin-top:8px; font-size:13px;">${im.obs}</div>` : ''}
-      ${auditHTML(im.created_by_nome, im.created_at, im.updated_by_nome, im.updated_at)}
-      <div class="status-line"><span class="stamp ${statusClass(im.status)}">${im.status}</span></div>
-    </div>`).join('');
-  grid.querySelectorAll('.im-card').forEach(el=>{
-    el.addEventListener('click', ()=> openImovelModal(parseInt(el.dataset.id)));
-  });
-}
 function openImovelModal(id){
   editingImovelId = id || null;
   const overlay = document.getElementById('imovel-overlay');
@@ -1103,37 +1103,7 @@ document.getElementById('delete-imovel-btn').addEventListener('click', async ()=
 });
 
 /* ================= DOCUMENTOS ================= */
-function renderDocs(){
-  const grid = document.getElementById('docs-grid');
-  grid.innerHTML = docs.length===0
-    ? `<div class="empty"><div class="big">—</div>Nenhum documento cadastrado.</div>`
-    : docs.map(d=>`
-    <div class="doc-card" data-id="${d.id}">
-      <div class="doc-tipo">${d.tipo||'—'}</div>
-      <h3>${d.nome}</h3>
-      <span class="yn ${d.recebido?'sim':'nao'}">${d.recebido?'Recebido':'Não recebido'}</span>
-      ${d.storage_path && (d.file_mime||'').startsWith('image/') ? `<div class="file-preview"><img data-thumb-path="${d.storage_path}" alt=""></div>` : ''}
-      <div class="doc-meta">${d.storage_path ? '📎 '+d.file_name : '— sem arquivo —'}</div>
-      ${d.responsavel ? `<div class="doc-meta">Responsável: ${d.responsavel}</div>` : ''}
-      ${auditHTML(d.uploaded_by_nome, d.created_at, d.updated_by_nome, d.updated_at)}
-      <div class="doc-actions">
-        ${d.storage_path ? `<button class="btn ghost small" data-download="${d.id}">Baixar</button>` : ''}
-        <button class="btn ghost small" data-edit="${d.id}">Editar</button>
-      </div>
-    </div>`).join('');
-  grid.querySelectorAll('[data-thumb-path]').forEach(async (img)=>{
-    const { data } = await sb.storage.from(DOCS_BUCKET).createSignedUrl(img.dataset.thumbPath, 300);
-    if(data) img.src = data.signedUrl;
-  });
-  grid.querySelectorAll('.doc-card').forEach(card=>{
-    card.addEventListener('click', (e)=>{
-      if(e.target.closest('button')) return;
-      openDocModal(parseInt(card.dataset.id));
-    });
-  });
-  grid.querySelectorAll('[data-edit]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); openDocModal(parseInt(btn.dataset.edit)); }));
-  grid.querySelectorAll('[data-download]').forEach(btn=> btn.addEventListener('click', (e)=>{ e.stopPropagation(); downloadDoc(parseInt(btn.dataset.download)); }));
-}
+
 async function downloadDoc(id){
   const meta = docs.find(d=>d.id===id);
   if(!meta || !meta.storage_path) return;
@@ -1159,6 +1129,8 @@ function openDocModal(id){
   document.getElementById('doc-file-filename').textContent = d.storage_path ? d.file_name : 'Nenhum arquivo selecionado';
   document.getElementById('doc-file-preview').innerHTML = '';
   document.getElementById('doc-current-file').textContent = d.storage_path ? ('Arquivo atual: '+d.file_name) : '';
+  document.getElementById('doc-download-btn').style.display = d.storage_path ? 'inline-flex' : 'none';
+  document.getElementById('doc-download-btn').onclick = ()=> downloadDoc(d.id);
   pendingFile = null;
   overlay.classList.add('active');
   if(!isNew) loadCommentsGeneric('documento_id', id, 'comments-list-doc');
