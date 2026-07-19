@@ -576,6 +576,15 @@
         </div>
       </div>
     </form>
+    <div style="border-top:1px solid var(--line); margin-top:20px; padding-top:18px;">
+      <h4 style="font-size:13px; text-transform:uppercase; letter-spacing:.4px; color:var(--forest); margin:0 0 12px;">Alterar senha</h4>
+      <div class="field"><label>Nova senha</label><input type="password" id="perfil-nova-senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+      <div class="field"><label>Confirmar nova senha</label><input type="password" id="perfil-confirma-senha" placeholder="Repita a nova senha" autocomplete="new-password"></div>
+      <div class="error-msg" id="senha-error"></div>
+      <div style="text-align:right; margin-top:8px;">
+        <button type="button" class="btn small" id="alterar-senha-btn">Alterar senha</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -999,18 +1008,19 @@ async function loadCommentsGeneric(field, id, listElId){
   });
 }
 async function postCommentGeneric(field, id, texto, file, listElId){
-  if(!texto && !file) return;
+  if(!texto && !file) return false;
   const payload = { autor: currentProfile.id, autor_nome: currentProfile.nome, texto: texto || null, [field]: id };
   if(file){
     const path = `comentarios/${Date.now()}_${file.name}`.replace(/\s+/g,'_');
     const { error: upErr } = await sb.storage.from(DOCS_BUCKET).upload(path, file, { upsert:false });
-    if(upErr){ toast('Erro ao enviar anexo.'); return; }
+    if(upErr){ toast('Erro ao enviar anexo: ' + upErr.message); return false; }
     payload.anexo_path = path;
     payload.anexo_mime = file.type;
   }
   const { error } = await sb.from('comentarios').insert(payload);
-  if(error){ toast('Erro ao comentar: ' + error.message); return; }
+  if(error){ toast('Erro ao comentar: ' + error.message); return false; }
   await loadCommentsGeneric(field, id, listElId);
+  return true;
 }
 function wireCommentForm(key, field, getId, textareaId, btnId, fileInputId, fileNameId, listElId){
   document.getElementById(fileInputId).addEventListener('change', (e)=>{
@@ -1026,11 +1036,17 @@ function wireCommentForm(key, field, getId, textareaId, btnId, fileInputId, file
     const textarea = document.getElementById(textareaId);
     const texto = textarea.value.trim();
     const file = pendingCommentFile[key];
-    await postCommentGeneric(field, id, texto, file, listElId);
-    textarea.value = '';
-    document.getElementById(fileInputId).value = '';
-    document.getElementById(fileNameId).textContent = '';
-    pendingCommentFile[key] = null;
+    const btn = document.getElementById(btnId);
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    const ok = await postCommentGeneric(field, id, texto, file, listElId);
+    btn.disabled = false; btn.textContent = 'Enviar';
+    if(ok){
+      textarea.value = '';
+      document.getElementById(fileInputId).value = '';
+      document.getElementById(fileNameId).textContent = '';
+      pendingCommentFile[key] = null;
+    }
+    // On failure, the text and selected file stay in place so nothing is lost.
   });
 }
 wireCommentForm('caso', 'caso_id', ()=>editingCasoId, 'new-comment-caso', 'add-comment-caso-btn', 'comment-file-caso', 'comment-file-caso-name', 'comments-list-caso');
@@ -1558,6 +1574,9 @@ document.getElementById('delete-evento-btn').addEventListener('click', async ()=
 /* ================= PERFIL ================= */
 document.getElementById('perfil-btn').addEventListener('click', ()=>{
   document.getElementById('perfil-nome').value = currentProfile.nome || '';
+  document.getElementById('perfil-nova-senha').value = '';
+  document.getElementById('perfil-confirma-senha').value = '';
+  document.getElementById('senha-error').style.display = 'none';
   document.getElementById('perfil-overlay').classList.add('active');
 });
 document.getElementById('cancel-perfil-btn').addEventListener('click', ()=> document.getElementById('perfil-overlay').classList.remove('active'));
@@ -1569,6 +1588,34 @@ document.getElementById('perfil-form').addEventListener('submit', async (e)=>{
   document.getElementById('user-badge').textContent = nome;
   document.getElementById('perfil-overlay').classList.remove('active');
   toast('Perfil atualizado.');
+});
+document.getElementById('alterar-senha-btn').addEventListener('click', async ()=>{
+  const errEl = document.getElementById('senha-error');
+  errEl.style.display = 'none';
+  const nova = document.getElementById('perfil-nova-senha').value;
+  const confirma = document.getElementById('perfil-confirma-senha').value;
+  if(nova.length < 6){
+    errEl.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(nova !== confirma){
+    errEl.textContent = 'As senhas não coincidem.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('alterar-senha-btn');
+  btn.disabled = true; btn.textContent = 'Alterando...';
+  const { error } = await sb.auth.updateUser({ password: nova });
+  btn.disabled = false; btn.textContent = 'Alterar senha';
+  if(error){
+    errEl.textContent = 'Erro ao alterar senha: ' + error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+  document.getElementById('perfil-nova-senha').value = '';
+  document.getElementById('perfil-confirma-senha').value = '';
+  toast('Senha alterada com sucesso.');
 });
 
 /* ================= NAV ================= */
